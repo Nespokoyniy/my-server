@@ -1,5 +1,5 @@
 # my-server
-Server for my portfolio, which uses a bunch of technologies to provide stable, convenient, and self-sufficient infrastructure
+Server for my portfolio, which uses a bunch of technologies to provide stable, convenient, and self-sufficient infrastructure. The project is managed entirely by me without any courses
 
 ## My plan for this project (in russian):
 **Цель**: создать сервер на виртуальной машине создать сервер с post, get, delete, put запросами. Тема не важна. Должна быть база данных
