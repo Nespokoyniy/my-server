@@ -1,8 +1,10 @@
 # my-server
-Server for my portfolio, which uses a bunch of technologies to provide stable, convenient, and self-sufficient infrastructure
+Server for my portfolio, which uses a bunch of technologies to provide stable, convenient, and self-sufficient infrastructure. The project is managed entirely by me without any courses
 
 ## My plan for this project (in russian):
 **Цель**: создать сервер на виртуальной машине создать сервер с post, get, delete, put запросами. Тема не важна. Должна быть база данных
+
+**Тема**: Веб приложение для управления задачами (что-то вроде программы для заметок) с простым интерфейсом
 
 **Основа**: доступ к локальному серверу из интернета (используй простой html и css для внешнего сайта), HTTPS-туннели с авторизацией
 	- Технологии: WireGuard/OpenVPN, Небольшой VPS как ретранслятор, Bash-скрипты для автоматизации
