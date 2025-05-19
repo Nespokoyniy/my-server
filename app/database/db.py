@@ -1,10 +1,14 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, Session
 from .models import Base
+from .config import settings as ss
 
-engine = create_engine("postgresql+psycopg2://postgres:roma123@192.168.0.115:5432/my-server-db")
+engine = create_engine(
+    f"postgresql+psycopg2://{ss.USERNAME}:{ss.PASSWORD}@{ss.IP_ADDRESS}:{ss.PORT}/{ss.DB_NAME}"
+)
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
 
 def get_db():
     Base.metadata.create_all(engine)

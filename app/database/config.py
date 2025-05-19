@@ -3,7 +3,7 @@ from pydantic_settings import BaseSettings
 class Settings(BaseSettings):
     USERNAME: str
     PASSWORD: str
-    IP_ADRESS: str
+    IP_ADDRESS: str
     PORT: int
     DB_NAME: str
     
