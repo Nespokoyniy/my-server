@@ -1,7 +1,7 @@
 from fastapi import Depends
 from fastapi.routing import APIRouter
 from ..database.db import get_db, Session
-from .. import schemas
+from ..validation import schemas
 from ..database import models
 
 router = APIRouter(prefix="/api/tasks")

@@ -25,8 +25,7 @@ class RecurringTask(Base):
         DateTime(timezone=True), default=datetime.datetime.now(datetime.timezone.utc)
     )
     priority = Column(Integer, default=0)
-    days = Column(ARRAY, nullable=False)
-
+    days = Column(ARRAY(String), nullable=False)
 
 class User(Base):
     __tablename__ = "users"
