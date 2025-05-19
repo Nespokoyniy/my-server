@@ -1,3 +1,3 @@
 from fastapi.routing import APIRouter
 
-router = APIRouter(prefix="/recur-task")
+router = APIRouter(prefix="api/recur-tasks")
