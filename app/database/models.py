@@ -14,6 +14,7 @@ class Task(Base):
         DateTime(timezone=True), default=datetime.datetime.now(datetime.timezone.utc)
     )
     priority = Column(Integer, default=0)
+    group = Column(String)
 
 
 class RecurringTask(Base):
