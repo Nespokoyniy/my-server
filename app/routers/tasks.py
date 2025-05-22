@@ -8,7 +8,7 @@ from sqlalchemy import delete, select, update
 router = APIRouter(prefix="/api/tasks")
 
 
-@router.post("/", status_code=200)
+@router.post("/", status_code=201)
 def new_task(body: schemas.Task, db: Session = Depends(get_db)):
     task = models.Task(**body.model_dump())
     db.add(task)
@@ -30,25 +30,31 @@ def get_task(id: int, db: Session = Depends(get_db)):
     ).mappings().first()
     
     if not task:
-        raise HTTPException
+        raise HTTPException(404)
     
     return task
 
 
-@router.put("/{id}", status_code=200)
+@router.put("/{id}", status_code=201)
 def update_task(body: schemas.Task, id: int, db: Session = Depends(get_db)):
-    db.execute(
-        update(models.Task).where(models.Task.id == id).values(**body.model_dump())
+    task = db.execute(
+        update(models.Task).where(models.Task.id == id).returning(models.Task.id).values(**body.model_dump())
     )
+    
+    if not task:
+        raise HTTPException(404)
+    
     db.commit()
-     
     return
 
-@router.delete("/{id}", status_code=204)
+@router.delete("/{id}", status_code=200)
 def delete_task(id: int, db: Session = Depends(get_db)):
-    db.execute(
-        delete(models.Task).where(models.Task.id == id)
-    )
-    db.commit()
+    task = db.execute(
+        delete(models.Task).where(models.Task.id == id).returning(models.Task.id)
+    ).first()
     
-    return 
+    if not task:
+        raise HTTPException(404)
+    
+    db.commit()
+    return task
