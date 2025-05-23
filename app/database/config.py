@@ -4,7 +4,6 @@ class Settings(BaseSettings):
     USERNAME: str
     PASSWORD: str
     IP_ADDRESS: str
-    PORT: int
     DB_NAME: str
     
     class Config:
