@@ -9,9 +9,9 @@ def update():
     os.system("pip freeze > requirements.txt")
 
 if __name__ == "__main__":
+    if len(sys.argv) == 1 or sys.argv[1] == "start":
+        start_server()
     if sys.argv[1] == "update":
         update()
-    if sys.argv[1] == "start":
-        start_server()
     else:
         print(f"command {sys.argv[1]} does not exist")

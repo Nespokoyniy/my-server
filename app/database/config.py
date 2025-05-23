@@ -5,6 +5,7 @@ class Settings(BaseSettings):
     PASSWORD: str
     IP_ADDRESS: str
     DB_NAME: str
+    DATABASE_URL: str
     
     class Config:
         env_file = ".env"
