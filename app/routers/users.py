@@ -2,6 +2,7 @@ from fastapi.routing import APIRouter
 from fastapi import Depends, HTTPException
 from sqlalchemy import delete, update, select
 from app.database import models
+from security.hash import hash_pwd
 from ..validation import schemas
 from ..database.database import Session, get_db
 
@@ -10,7 +11,9 @@ router = APIRouter(prefix="/api/auth")
 
 @router.post("/", status_code=201)
 def create_user(body: schemas.User, db: Session = Depends(get_db)):
-    user = models.User(**body.model_dump())
+    body = body.model_dump()
+    body["password"] = hash_pwd(body["password"])
+    user = models.User(**body)
     db.add(user)
     db.commit()
     return {"message": "user was created successfully"}
