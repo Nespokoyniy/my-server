@@ -74,7 +74,7 @@ def update_task(body: schemas.RecurTask, id: int, db: Session = Depends(get_db))
         raise HTTPException(404, detail="task doesn't exist")
 
     db.commit()
-    return {"message": f"recurring task {id} was updated"}
+    return {"message": f"recurring task was updated"}
 
 
 @router.delete("/{id}", status_code=204)
