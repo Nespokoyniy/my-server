@@ -1,11 +1,15 @@
-from fastapi.routing import APIRouter
+from fastapi import APIRouter
 
-router = APIRouter()
+router = APIRouter("/auth")
 
 @router.post("/register")
 def register():
     pass
 
-@router.get("/login")
+@router.post("/login")
 def login():
+    pass
+
+@router.post("/logout")
+def logout():
     pass

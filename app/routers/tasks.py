@@ -9,7 +9,7 @@ router = APIRouter(prefix="/api/tasks")
 
 
 @router.post("/", status_code=201)
-def new_task(body: schemas.Task, db: Session = Depends(get_db)):
+def create_task(body: schemas.Task, db: Session = Depends(get_db)):
     task = models.Task(**body.model_dump())
     db.add(task)
     db.commit()

@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+
 from .routers import pages, recurring_tasks, tasks, users, auth
 
 app = FastAPI()

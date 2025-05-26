@@ -2,11 +2,11 @@ from fastapi.routing import APIRouter
 from fastapi import Depends, HTTPException
 from sqlalchemy import delete, update, select
 from app.database import models
-from ..security.hash import hash_pwd
+from ..utils.hash import hash_pwd
 from ..validation import schemas
 from ..database.database import Session, get_db
 
-router = APIRouter(prefix="/api/users")
+router = APIRouter(prefix="/api/users", tags=["Admin"])
 
 
 @router.post("/", status_code=201)
