@@ -6,6 +6,9 @@ class Settings(BaseSettings):
     IP_ADDRESS: str
     DB_NAME: str
     DATABASE_URL: str
+    SECRET_KEY: str
+    ALGORITHM: str
+    TOKEN_EXPIRE_MINUTES: int
     
     class Config:
         env_file = ".env"
