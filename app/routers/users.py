@@ -1,7 +1,5 @@
 from fastapi.routing import APIRouter
 from fastapi import Depends, HTTPException
-from sqlalchemy import delete, update, select
-from app.database import models
 from ..services import users
 from ..database.database import Session, get_db
 from ..utils.exc import db_exc_check
