@@ -9,6 +9,9 @@ class Settings(BaseSettings):
     SECRET_KEY: str
     ALGORITHM: str
     TOKEN_EXPIRE_MINUTES: int
+    REFRESH_TOKEN_EXPIRE_MINUTES: int
+    REFRESH_SECRET_KEY: str
+    REFRESH_ALGORITHM: str
     
     class Config:
         env_file = ".env"

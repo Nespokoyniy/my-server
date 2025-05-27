@@ -1,3 +1,5 @@
+from ..database.database import Session
+from typing import Any, Union
 from pydantic import BaseModel, EmailStr
 from .enum import Weekdays
 
@@ -13,3 +15,9 @@ class User(BaseModel):
     name: str
     email: EmailStr = ""
     password: str
+    
+class ExcTuple(BaseModel):
+    body: Any = None
+    id: int = None
+    name: str = None
+    db: Session
