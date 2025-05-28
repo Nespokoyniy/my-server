@@ -1,5 +1,5 @@
 from ..database.database import Session
-from typing import Any, Union
+from typing import Any
 from pydantic import BaseModel, EmailStr
 from .enum import Weekdays
 
@@ -20,4 +20,4 @@ class ExcTuple(BaseModel):
     body: Any = None
     id: int = None
     name: str = None
-    db: Session
+    db: Any

@@ -5,7 +5,7 @@ from ..database.database import Session, get_db
 from ..utils.exc import db_exc_check
 from ..validation import schemas
 
-router = APIRouter(prefix="/api/users", tags=["Admin"])
+router = APIRouter(prefix="/api/users", tags=["Users", "API"])
 
 
 @router.post("/", status_code=201)

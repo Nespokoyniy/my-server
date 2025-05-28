@@ -1,6 +1,6 @@
 from fastapi.routing import APIRouter
 
-router = APIRouter()
+router = APIRouter(tags=["Pages", "Prod"])
 
 @router.get("/register") # ?
 def get_register_page():

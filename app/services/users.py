@@ -1,3 +1,6 @@
+from fastapi.security import OAuth2PasswordRequestForm
+
+from ..database.database import Session
 from ..database import models
 from sqlalchemy import delete, select, update
 
@@ -11,7 +14,7 @@ USER_FIELDS = (
 )
 
 
-def create_user(body, db):
+def create_user(body, db: Session):
     body = body.model_dump()
     user = models.User(**body)
     db.add(user)
@@ -20,14 +23,23 @@ def create_user(body, db):
     return user
 
 
-def get_user(id, db):
+def get_user(id, db: Session):
     user = (
         db.execute(select(USER_FIELDS).where(models.User.id == id)).mappings().first()
     )
     return user
 
 
-def update_user(id, body, db):
+def get_user_by_form(form: OAuth2PasswordRequestForm, db: Session):
+    user = (
+        db.execute(select(USER_FIELDS).where(models.User.name == form.username))
+        .mapppings()
+        .first()
+    )
+    return user
+
+
+def update_user(id, body, db: Session):
     user = db.execute(
         update(models.User)
         .where(models.User.id == id)
@@ -41,7 +53,7 @@ def update_user(id, body, db):
     return user
 
 
-def delete_user(id, db):
+def delete_user(id, db: Session):
     user = db.execute(
         delete(models.User).where(models.User.id == id).returning(models.User.id)
     ).first()

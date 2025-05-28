@@ -32,7 +32,7 @@ class User(Base):
     id = Column(Integer, primary_key=True)
     name = Column(String, unique=True, nullable=False)
     email = Column(String, nullable=True)
-    password = Column(Integer, nullable=False)
+    password = Column(String, nullable=False)
     date_created = Column(
         DateTime(timezone=True), default=datetime.datetime.now(datetime.timezone.utc)
     )

@@ -6,7 +6,7 @@ from ..services import tasks
 from ..utils.exc import db_exc_check
 
 
-router = APIRouter(prefix="/api/tasks")
+router = APIRouter(prefix="/api/tasks", tags=["Tasks", "API"])
 
 
 @router.post("/", status_code=201)

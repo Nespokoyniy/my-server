@@ -5,7 +5,7 @@ from app.database.database import get_db, Session
 from ..utils.exc import db_exc_check
 from ..services import recurring_tasks as rt
 
-router = APIRouter(prefix="/api/recur-tasks")
+router = APIRouter(prefix="/api/recur-tasks", tags=["Recur-tasks", "API"])
 
 @router.post("/", status_code=201)
 def create_recur_task(body: schemas.RecurTask, db: Session = Depends(get_db)):

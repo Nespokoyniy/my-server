@@ -5,7 +5,7 @@ from ..utils.exc import db_exc_check
 from ..services import auth
 from fastapi.security import OAuth2PasswordRequestForm
 
-router = APIRouter(prefix="/auth")
+router = APIRouter(prefix="/auth", tags=["Prod", "Auth"])
 
 # тут будет пользовательский интерфейс
 # Что делает:
@@ -21,11 +21,12 @@ router = APIRouter(prefix="/auth")
 @router.post("/register")
 def register(body: schemas.User, db: Session = Depends(get_db)):
     db_exc_check(auth.register, (body, db))
-    return {"message": "you was registered successfully"}
+    return {"message": "your account was registered"}
 
 @router.post("/login")
-def login(form: OAuth2PasswordRequestForm = Depends()):
-    pass
+def login(form: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
+    db_exc_check(auth.login, (form, db))
+    return {"message": "you are logged into your account"}
 
 @router.post("/logout")
 def logout():
