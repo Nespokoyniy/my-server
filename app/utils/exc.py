@@ -11,4 +11,6 @@ def db_exc_check(func, args: schemas.ExcTuple):
     except IntegrityError:
         db.rollback()
         raise HTTPException(400, detail="data integrity error")
-    
+    except SQLAlchemyError:
+        db.rollback()
+        raise HTTPException(500, detail="database operation failed")

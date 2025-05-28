@@ -10,7 +10,7 @@ TASK_FIELDS = (
 )
 
 
-def create_task(body, db):
+def create_task(body, token, db):
     task = models.Task(**body.model_dump())
     db.add(task)
     db.commit()

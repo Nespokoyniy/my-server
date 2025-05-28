@@ -4,14 +4,16 @@ from ..database.database import get_db, Session
 from ..validation import schemas
 from ..services import tasks
 from ..utils.exc import db_exc_check
+from ..utils.dependencies import oauth2_scheme, verify_token
 
 
 router = APIRouter(prefix="/api/tasks", tags=["Tasks", "API"])
 
 
 @router.post("/", status_code=201)
-def create_task(body: schemas.Task, db: Session = Depends(get_db)):
-    db_exc_check(tasks.create_task, (body, db))
+def create_task(body: schemas.Task, db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)):
+    verify_token(token, db)
+    db_exc_check(tasks.create_task, (body, token, db))
     return {"message": "new task was created"}
     
 

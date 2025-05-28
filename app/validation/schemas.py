@@ -21,3 +21,8 @@ class ExcTuple(BaseModel):
     id: int = None
     name: str = None
     db: Any
+    
+class Payload(BaseModel):
+    sub: str
+    exp: int
+    iat: int
