@@ -4,8 +4,6 @@ from ..database.database import Session
 from ..database import models
 from sqlalchemy import delete, select, update
 
-# добавь проверку прав Admin
-
 USER_FIELDS = [
     models.User.id,
     models.User.email,

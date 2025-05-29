@@ -7,7 +7,7 @@ Base = declarative_base()
 
 class Task(Base):
     __tablename__ = "tasks"
-    id = Column(Integer, primary_key=True)
+    id = Column(Integer, primary_key=True, unique=True)
     name = Column(String, nullable=False)
     description = Column(String, nullable=True)
     date_created = Column(
@@ -19,7 +19,7 @@ class Task(Base):
 
 class RecurringTask(Base):
     __tablename__ = "recur_tasks"
-    id = Column(Integer, primary_key=True)
+    id = Column(Integer, primary_key=True, unique=True)
     name = Column(String, nullable=False)
     description = Column(String, nullable=True)
     date_created = Column(
