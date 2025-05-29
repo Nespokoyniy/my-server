@@ -20,9 +20,9 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/login", scheme_name="JWT")
 
 def create_token(subject_id: int, expires_delta: int = None) -> str:
     if expires_delta is not None:
-        expires_delta = datetime.now(timezone.utc) + expires_delta
+        expires_delta = datetime.datetime.now(timezone.utc) + expires_delta
     else:
-        expires_delta = datetime.now(timezone.utc) + timedelta(
+        expires_delta = datetime.datetime.now(timezone.utc) + timedelta(
             minutes=TOKEN_EXPIRE_MINUTES
         )
 
@@ -34,11 +34,11 @@ def create_token(subject_id: int, expires_delta: int = None) -> str:
     return encoded_jwt
 
 
-def create_refresh_token(subject_id: str, expires_delta: int = None) -> str:
+def create_refresh_token(subject_id: int, expires_delta: int = None) -> str:
     if expires_delta is not None:
-        expires_delta = datetime.now(timezone.utc) + expires_delta
+        expires_delta = datetime.datetime.now(timezone.utc) + expires_delta
     else:
-        expires_delta = datetime.now(timezone.utc) + timedelta(
+        expires_delta = datetime.datetime.now(timezone.utc) + timedelta(
             minutes=REFRESH_TOKEN_EXPIRE_MINUTES
         )
 
@@ -53,6 +53,7 @@ def verify_token(token: str = Depends(oauth2_scheme)):
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         token_data = Payload(**payload)
+        user_id = int(token_data.sub)
 
         if datetime.datetime.fromtimestamp(token_data.exp) < datetime.datetime.now():
             raise HTTPException(
@@ -62,4 +63,4 @@ def verify_token(token: str = Depends(oauth2_scheme)):
     except (JWTError, ValidationError):
         raise HTTPException(403, detail="Could not validate credentials")
     
-    return True
+    return user_id

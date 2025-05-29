@@ -1,5 +1,5 @@
 from fastapi.routing import APIRouter
-from fastapi import Depends, HTTPException
+from fastapi import Depends
 from ..services import users
 from ..database.database import Session, get_db
 from ..utils.exc import db_exc_check
@@ -8,33 +8,17 @@ from ..utils.dependencies import oauth2_scheme, verify_token
 
 router = APIRouter(prefix="/api/users", tags=["Users", "API", "Admin"])
 
-
-@router.post("/", status_code=201)
-def create_user(body: schemas.User, db: Session = Depends(get_db)):
-    db_exc_check(users.create_user, (body, db))
-    return {"message": "new user was created"}
-
-
-@router.get("/{id}", status_code=200)
-def get_user(id: int, db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)):
-    verify_token(token)
-    user = users.get_user(id, db)
-
-    if not user:
-        raise HTTPException(404, detail=f"user doesn't exist")
+@router.get("/", status_code=200)
+def get_user(db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)):
+    user_id = verify_token(token)
+    user = users.get_user({"user_id": user_id, "db": db})
 
     return user
 
 
-@router.put("/{id}", status_code=200)
-def update_user(body: schemas.User, id: int, db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)):
-    verify_token(token)
-    db_exc_check(users.update_user, (id, body, db))
+@router.put("/", status_code=200)
+def update_user(body: schemas.User, db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)):
+    user_id = verify_token(token)
+    updated_user = db_exc_check(users.update_user, {"user_id": user_id, "body": body, "db": db})
 
-    return {"message": f"user {id} was updated"}
-
-
-@router.delete("/{id}", status_code=204)
-def delete_user(id: int, db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)):
-    verify_token(token)
-    db_exc_check(users.delete_user, (id, db))
+    return updated_user
