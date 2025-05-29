@@ -4,8 +4,9 @@ from ..services import users
 from ..database.database import Session, get_db
 from ..utils.exc import db_exc_check
 from ..validation import schemas
+from ..utils.dependencies import oauth2_scheme, verify_token
 
-router = APIRouter(prefix="/api/users", tags=["Users", "API"])
+router = APIRouter(prefix="/api/users", tags=["Users", "API", "Admin"])
 
 
 @router.post("/", status_code=201)
@@ -15,7 +16,8 @@ def create_user(body: schemas.User, db: Session = Depends(get_db)):
 
 
 @router.get("/{id}", status_code=200)
-def get_user(id: int, db: Session = Depends(get_db)):
+def get_user(id: int, db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)):
+    verify_token(token)
     user = users.get_user(id, db)
 
     if not user:
@@ -25,12 +27,14 @@ def get_user(id: int, db: Session = Depends(get_db)):
 
 
 @router.put("/{id}", status_code=200)
-def update_user(body: schemas.User, id: int, db: Session = Depends(get_db)):
+def update_user(body: schemas.User, id: int, db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)):
+    verify_token(token)
     db_exc_check(users.update_user, (id, body, db))
 
     return {"message": f"user {id} was updated"}
 
 
 @router.delete("/{id}", status_code=204)
-def delete_user(id: int, db: Session = Depends(get_db)):
+def delete_user(id: int, db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)):
+    verify_token(token)
     db_exc_check(users.delete_user, (id, db))

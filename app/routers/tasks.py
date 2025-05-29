@@ -12,20 +12,22 @@ router = APIRouter(prefix="/api/tasks", tags=["Tasks", "API"])
 
 @router.post("/", status_code=201)
 def create_task(body: schemas.Task, db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)):
-    verify_token(token, db)
+    verify_token(token)
     db_exc_check(tasks.create_task, (body, token, db))
     return {"message": "new task was created"}
     
 
 
 @router.get("/", status_code=200)
-def get_tasks(db: Session = Depends(get_db)):
+def get_tasks(db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)):
+    verify_token(token)
     tasks = tasks.get_tasks(db)
     return tasks
 
 
 @router.get("/{id}", status_code=200)
-def get_task(id: int, db: Session = Depends(get_db)):
+def get_task(id: int, db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)):
+    verify_token(token)
     task = tasks.get_task(id, db)
     
     if not task:
@@ -35,12 +37,14 @@ def get_task(id: int, db: Session = Depends(get_db)):
 
 
 @router.put("/{id}", status_code=200)
-def update_task(body: schemas.Task, id: int, db: Session = Depends(get_db)):
+def update_task(body: schemas.Task, id: int, db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)):
+    verify_token(token)
     db_exc_check(tasks.update_task, (id, body, db))
     return {"message": f"task {id} was updated"}
     
 
 
 @router.delete("/{id}", status_code=204)
-def delete_task(id: int, db: Session = Depends(get_db)):
+def delete_task(id: int, db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)):
+    verify_token(token)
     db_exc_check(tasks.delete_task, (id, db))

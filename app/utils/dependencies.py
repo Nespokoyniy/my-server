@@ -18,7 +18,7 @@ REFRESH_SECRET_KEY = ss.REFRESH_SECRET_KEY
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/login", scheme_name="JWT")
 
 
-def create_token(subject: str, expires_delta: int = None) -> str:
+def create_token(subject_id: int, expires_delta: int = None) -> str:
     if expires_delta is not None:
         expires_delta = datetime.now(timezone.utc) + expires_delta
     else:
@@ -26,15 +26,15 @@ def create_token(subject: str, expires_delta: int = None) -> str:
             minutes=TOKEN_EXPIRE_MINUTES
         )
 
-    if not subject:
+    if not subject_id:
         raise ValueError("Subject must be non-empty string")
 
-    to_encode = {"sub": str(subject), "exp": expires_delta}
+    to_encode = {"sub": str(subject_id), "exp": expires_delta}
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, ALGORITHM)
     return encoded_jwt
 
 
-def create_refresh_token(subject: str, expires_delta: int = None) -> str:
+def create_refresh_token(subject_id: str, expires_delta: int = None) -> str:
     if expires_delta is not None:
         expires_delta = datetime.now(timezone.utc) + expires_delta
     else:
@@ -42,14 +42,14 @@ def create_refresh_token(subject: str, expires_delta: int = None) -> str:
             minutes=REFRESH_TOKEN_EXPIRE_MINUTES
         )
 
-    if not subject:
+    if not subject_id:
         raise ValueError("Subject must be non-empty string")
 
-    to_encode = {"sub": str(subject), "exp": expires_delta}
+    to_encode = {"sub": str(subject_id), "exp": expires_delta}
     encoded_jwt = jwt.encode(to_encode, REFRESH_SECRET_KEY, ALGORITHM)
     return encoded_jwt
 
-def verify_token(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
+def verify_token(token: str = Depends(oauth2_scheme)):
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         token_data = Payload(**payload)

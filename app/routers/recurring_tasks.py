@@ -4,23 +4,27 @@ from ..validation import schemas
 from app.database.database import get_db, Session
 from ..utils.exc import db_exc_check
 from ..services import recurring_tasks as rt
+from ..utils.dependencies import oauth2_scheme, verify_token
 
 router = APIRouter(prefix="/api/recur-tasks", tags=["Recur-tasks", "API"])
 
 @router.post("/", status_code=201)
-def create_recur_task(body: schemas.RecurTask, db: Session = Depends(get_db)):
+def create_recur_task(body: schemas.RecurTask, db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)):
+    verify_token(token)
     db_exc_check(rt.create_recur_task, (body, db))
     return {"message": "new recurring task was created"}
 
 
 @router.get("/", status_code=200)
-def get_recur_tasks(db: Session = Depends(get_db)):
+def get_recur_tasks(db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)):
+    verify_token(token)
     tasks = rt.get_recur_tasks(db)
     return tasks
 
 
 @router.get("/{id}", status_code=200)
-def get_recur_task(id: int, db: Session = Depends(get_db)):
+def get_recur_task(id: int, db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)):
+    verify_token(token)
     task = rt.get_recur_task(id, db)
 
     if not task:
@@ -30,11 +34,13 @@ def get_recur_task(id: int, db: Session = Depends(get_db)):
 
 
 @router.put("/{id}", status_code=200)
-def update_task(body: schemas.RecurTask, id: int, db: Session = Depends(get_db)):
+def update_task(body: schemas.RecurTask, id: int, db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)):
+    verify_token(token)
     db_exc_check(rt.update_recur_task, (id, body, db))
     return {"message": f"recurring task {id} was updated"}
 
 
 @router.delete("/{id}", status_code=204)
-def delete_task(id: int, db: Session = Depends(get_db)):
+def delete_task(id: int, db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)):
+    verify_token(token)
     db_exc_check(rt.delete_recur_task, (id, db))

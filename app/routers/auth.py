@@ -4,6 +4,7 @@ from ..database.database import Session, get_db
 from ..utils.exc import db_exc_check
 from ..services import auth
 from fastapi.security import OAuth2PasswordRequestForm
+from ..utils.dependencies import oauth2_scheme, verify_token
 
 router = APIRouter(prefix="/auth", tags=["Prod", "Auth"])
 
@@ -29,5 +30,6 @@ def login(form: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get
     return {"message": "you are logged into your account"}
 
 @router.post("/logout")
-def logout():
-    pass
+def logout(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
+    verify_token(token)
+    auth.logout(token) #допиши
