@@ -21,3 +21,5 @@ def get_start_page():
 @router.get("/secret-page")
 def get_secret_page():
     pass
+
+#добавь error pages и остальное что вспомнишь

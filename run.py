@@ -17,8 +17,8 @@ def alembic_upgrade():
 
 
 if __name__ == "__main__":
-    if len(sys.argv) > 1 and sys.argv[1] == "alembic":
+    if len(sys.argv) > 1 and "alembic" in sys.argv:
         alembic_upgrade()
-    if len(sys.argv) > 1 and sys.argv[1] == "req":
+    if len(sys.argv) > 1 and "req" in sys.argv:
         requirements_update()
     start_server()
