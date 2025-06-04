@@ -13,7 +13,7 @@ class Settings(BaseSettings):
     REFRESH_SECRET_KEY: str
     REFRESH_ALGORITHM: str
     
-    class Config:
+    class ConfigDict:
         env_file = ".env"
 
 settings = Settings()
