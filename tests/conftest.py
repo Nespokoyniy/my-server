@@ -1,6 +1,6 @@
 import pytest
 from fastapi.testclient import TestClient
-from app.main import app
+from backend.app.main import app
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
@@ -13,6 +13,8 @@ def client():
 def create_test_db():
     pass
 
+# Вместо того что снизу напиши фикстуру для подключения к тестовой базе данных, ссылка есть, сначала разрберись с тем чтобы
+# ее создать и тд и только потом уже делай это
 # @pytest.fixture
 # def get_test_db():
 #     engine = create_engine(

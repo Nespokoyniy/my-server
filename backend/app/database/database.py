@@ -2,9 +2,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, Session
 from ..config import settings as ss
 
-engine = create_engine(
-    f"postgresql+psycopg2://{ss.USERNAME}:{ss.PASSWORD}@{ss.IP_ADDRESS}:5432/{ss.DB_NAME}"
-)
+engine = create_engine(ss.DB_URL)
 
 SessionLocal = sessionmaker(autoflush=False, bind=engine)
 
