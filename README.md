@@ -35,4 +35,4 @@ fastapi, postgresql (с помощью sqlalchemy + alembic), jwt, тесты с
 	- Технологии: SSH-подключение к серверам через paramiko, python + библиотека для тг ботов, prometheus и grafana (опционально для метрик)
 
 #### Развитие
-Добавление Terraform, Kubernetes (для оркестрации), Ansible
+Добавление Terraform, Kubernetes (для оркестрации), Ansible, redis для кеширования
