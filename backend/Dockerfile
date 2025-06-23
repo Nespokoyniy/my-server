@@ -4,11 +4,11 @@ LABEL owner="r0maf"
 
 WORKDIR /backend
 
-COPY ./backend/requirements.txt .
+COPY requirements.txt .
 
 RUN pip install --upgrade pip && pip install -r requirements.txt
 
-COPY ./backend .
+COPY . .
 
 EXPOSE 8000
 
