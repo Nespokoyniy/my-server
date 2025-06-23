@@ -1,4 +1,4 @@
-FROM python:3.14.0b3-alpine3.21
+FROM python:3.13.5-slim-bookworm
 
 LABEL owner="r0maf"
 
