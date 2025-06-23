@@ -1,0 +1,35 @@
+services:
+  test_db:
+    image: postgres
+    environment:
+      - DB_NAME=${DB_NAME}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - USER=${USER}
+    networks:
+      - backend
+    volumes:
+      - pg_test_data:/var/lib/postgresql/data
+
+  backend:
+    build:
+      context: /backend
+      dockerfile: Dockerfile
+    networks:
+      - backend
+    volumes:
+      - /backend:/backend:ro
+    environment:
+      - TEST_DB_URL=${TEST_DB_URL}
+    command: >
+      sh -c "uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
+    depends_on:
+      [test_db]
+    ports:
+      - "8000:8000"
+
+volumes:
+  pg_test_data:
+
+networks:
+  backend:
+    driver: bridge

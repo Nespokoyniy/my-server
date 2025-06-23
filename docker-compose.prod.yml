@@ -1,0 +1,20 @@
+services:
+  main_db:
+    image: postgres:latest
+    environment:
+      - TEST_DB_NAME=${TEST_DB_NAME}
+      - TEST_DB_PASSWORD=${DB_PASSWORD}
+      - USER=${USER}
+    networks:
+      - backend
+    volumes:
+      - pg_main_data:/var/lib/postgresql/data
+
+# тут потом будет nginx и тд, пока не буду настраивать порты и так далее
+
+volumes:
+  pg_main_data:
+
+networks:
+  backend:
+    driver: bridge
