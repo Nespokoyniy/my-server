@@ -6,6 +6,8 @@ def db_exc_check(func, args: dict):
     try:
         db = args["db"]
         resp = func(**args)
+        if not resp:
+            raise HTTPException(404, detail="data is invalid or doesn't exist")
         return resp
     except IntegrityError as e:
         db.rollback()

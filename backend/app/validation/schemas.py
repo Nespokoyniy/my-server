@@ -28,5 +28,5 @@ class UserOut(BaseModel):
     
 class Payload(BaseModel):
     sub: str
-    exp: int
-    iat: int
+    exp: float
+    iat: float
