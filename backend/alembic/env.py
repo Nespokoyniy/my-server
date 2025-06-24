@@ -1,5 +1,5 @@
 from logging.config import fileConfig
-
+import os
 from sqlalchemy import engine_from_config
 from sqlalchemy import pool
 from app.config import settings as ss
@@ -26,6 +26,15 @@ target_metadata = Base.metadata
 # can be acquired:
 # my_important_option = config.get_main_option("my_important_option")
 # ... etc.
+
+
+def get_url():
+    if "DB_URL" in os.environ:
+        return os.environ["DB_URL"]
+
+    config.set_main_option("sqlalchemy.url", ss.DB_URL)
+
+    return config.get_main_option("sqlalchemy.url")
 
 
 def run_migrations_offline() -> None:
@@ -59,10 +68,9 @@ def run_migrations_online() -> None:
     and associate a connection with the context.
 
     """
-    db_url = ss.DB_URL
-    config.set_main_option("sqlalchemy.url", db_url)
+    db_url = get_url()
     connectable = engine_from_config(
-        config.get_section(config.config_ini_section, {}),
+        {"sqlalchemy.url": db_url},
         prefix="sqlalchemy.",
         poolclass=pool.NullPool,
     )

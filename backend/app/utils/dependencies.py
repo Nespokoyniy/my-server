@@ -1,7 +1,5 @@
 from fastapi.security import OAuth2PasswordBearer
 from pydantic import ValidationError
-
-from app.database.database import Session, get_db
 from ..config import settings as ss
 from jose import JWTError, jwt
 from datetime import datetime, timedelta, timezone
