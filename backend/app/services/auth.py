@@ -16,10 +16,10 @@ def register(body: schemas.User, db: Session):
 
 def login(form: OAuth2PasswordRequestForm, db: Session):
     user = db_exc_check(users.get_user_by_form, {"form": form, "db": db})
-    hashed_pwd = user["password"]
-    if not verify_pwd(form.password, hashed_pwd) or user is None:
-        raise HTTPException(400, detail="Invalid username or password")
 
+    if user is None or not verify_pwd(form.password, user["password"]):
+        raise HTTPException(400, detail="Invalid username or password")
+    
     return {
         "access_token": create_token(user["id"]),
         "refresh_token": create_refresh_token(user["id"]),
