@@ -5,6 +5,9 @@ from jose import JWTError, jwt
 from datetime import datetime, timedelta, timezone
 from ..validation.schemas import Payload
 from fastapi import Depends, HTTPException
+from ..database.database import get_db, Session
+from sqlalchemy import exists, select
+from ..database import models
 
 SECRET_KEY = ss.SECRET_KEY
 TOKEN_EXPIRE_MINUTES = ss.TOKEN_EXPIRE_MINUTES
@@ -72,6 +75,13 @@ def verify_token(token: str = Depends(oauth2_scheme)):
     return user_id
 
 
-def get_current_user(token: str = Depends(oauth2_scheme)):
+def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
     user_id = verify_token(token)
-    return user_id
+    user_exists = db.execute(select(exists().where(models.User.id == user_id))).scalar()
+    
+    if user_exists:
+        return user_id
+    
+    raise HTTPException(
+                401, detail="Token expired", headers={"WWW-Authenticate": "Bearer"}
+            )

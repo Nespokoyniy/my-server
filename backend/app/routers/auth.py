@@ -15,12 +15,12 @@ def register(body: schemas.User, db: Session = Depends(get_db)):
     return {"message": "your account was registered"}
 
 
-@router.post("/login", status_code=201)
+@router.post("/login", status_code=200)
 def login(form: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
     return db_exc_check(auth.login, {"form": form, "db": db})
 
 
-@router.post("/delete", status_code=204)
+@router.delete("/delete-account", status_code=204)
 def delete_account(
     user_id: int = Depends(get_current_user), db: Session = Depends(get_db)
 ):

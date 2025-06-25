@@ -60,7 +60,7 @@ def update_user(user_id, body, db: Session):
 def delete_user(user_id, db: Session):
     user = db.execute(
         delete(models.User).where(models.User.id == user_id).returning(models.User.id)
-    ).first()
+    ).mappings().first()
+    
     db.commit()
-    db.refresh(user)
     return user

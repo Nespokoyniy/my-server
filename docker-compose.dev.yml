@@ -39,7 +39,7 @@ services:
     networks:
       - backend
     volumes:
-      - ./backend/app:/backend/app
+      - ./backend:/backend
     environment:
       - TEST_DB_URL=${TEST_DB_URL}
       - DB_URL=${DB_URL}
