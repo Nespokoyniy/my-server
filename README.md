@@ -36,3 +36,7 @@ fastapi, postgresql (с помощью sqlalchemy + alembic), jwt, тесты с
 
 #### Развитие
 Добавление Terraform, Kubernetes (для оркестрации), Ansible, redis для кеширования
+
+---
+## Полезные ссылки
+- Postman endpoints: my-server workspace
