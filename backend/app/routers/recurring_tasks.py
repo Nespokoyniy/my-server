@@ -9,14 +9,14 @@ from ..utils.dependencies import get_current_user
 router = APIRouter(prefix="/api/recur-tasks", tags=["Recur-tasks", "API"])
 
 
-@router.put("/{user_task_id}", status_code=200)
+@router.put("/{user_task_id}/status", status_code=200)
 def complete_uncomplete_recur_task(
     user_task_id: int,
     db: Session = Depends(get_db),
     user_id: int = Depends(get_current_user),
 ):
     resp = db_exc_check(
-        rt.complete_uncomplete_task,
+        rt.complete_uncomplete_recur_task,
         {"db": db, "user_task_id": user_task_id, "user_id": user_id},
     )
     return resp

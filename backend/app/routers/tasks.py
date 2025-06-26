@@ -10,7 +10,7 @@ from ..utils.dependencies import get_current_user
 router = APIRouter(prefix="/api/tasks", tags=["Tasks", "API"])
 
 
-@router.put("/{user_task_id}", status_code=200)
+@router.put("/{user_task_id}/status", status_code=200)
 def complete_uncomplete_task(
     user_task_id: int,
     db: Session = Depends(get_db),
