@@ -42,7 +42,7 @@ services:
     build:
       context: /
       dockerfile: Dockerfile.tests
-    image: my-server-tests-ci:latest
+    image: my-server-tests-ci-dev:latest
     networks:
       - backend-ci
     environment:
@@ -53,15 +53,29 @@ services:
       - TOKEN_EXPIRE_MINUTES=${TOKEN_EXPIRE_MINUTES}
       - REFRESH_TOKEN_EXPIRE_MINUTES=${REFRESH_TOKEN_EXPIRE_MINUTES}
       - REFRESH_ALGORITHM=${REFRESH_ALGORITHM}
-    command: pytest /tests && tail -f /dev/null
+    command: sh -c "pytest && tail -f /dev/null"
     volumes:
-      - /tests:/tests
-      - /backend:/backend
+      - /tests:/app/tests
+      - /backend:/app/backend
     depends_on:
       test_db:
         condition: service_healthy
       backend:
         condition: service_started
+  
+  pgadmin4:
+    image: dpage/pgadmin4:latest
+    ports:
+      - 5050:80
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=${PGADMIN_DEFAULT_EMAIL}
+      - PGADMIN_DEFAULT_PASSWORD=${PGADMIN_DEFAULT_PASSWORD}
+    depends_on:
+      - test_db
+    volumes:
+      - pgadmin4_data:/var/lib/pgadmin
+    networks:
+      - backend-ci
 
 
 networks:
@@ -70,3 +84,4 @@ networks:
 
 volumes:
   pg_test_data:
+  pgadmin4_data:

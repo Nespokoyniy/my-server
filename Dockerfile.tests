@@ -12,8 +12,8 @@ COPY /tests /tests
 
 COPY /backend/requirements.txt .
 
-COPY . pytest.ini
+COPY pytest.ini .
 
 RUN pip install --upgrade pip && pip install -r requirements.txt
 
-CMD ["pytest", "/tests"]
+CMD ["pytest"]

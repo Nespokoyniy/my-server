@@ -40,3 +40,7 @@ def token(client: TestClient, register):
 
     headers = {"Authorization": f"Bearer {access_token}"}
     return headers
+
+@pytest.fixture
+def big_boss():
+    return "big boss"
