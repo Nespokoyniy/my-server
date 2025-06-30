@@ -1,6 +1,6 @@
 from ..database import models
 from sqlalchemy import delete, select, update
-from ..database.database import Session
+from sqlalchemy.orm import Session
 
 TASK_FIELDS = [
     models.RecurringTask.user_task_id,

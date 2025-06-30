@@ -1,6 +1,6 @@
 from fastapi.security import OAuth2PasswordRequestForm
-from app.utils.hash import verify_pwd
-from ..database.database import Session
+from ..utils.hash import verify_pwd
+from sqlalchemy.orm import Session
 from ..database import models
 from sqlalchemy import delete, select, update
 

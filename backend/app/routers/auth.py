@@ -1,10 +1,10 @@
 from fastapi import APIRouter, Depends
 from ..validation import schemas
-from ..database.database import Session, get_db
+from ..database.database import get_db
+from sqlalchemy.orm import Session
 from ..utils.exc import db_exc_check
-from ..services import auth, users
+from ..services import auth
 from fastapi.security import OAuth2PasswordRequestForm
-from ..utils.dependencies import get_current_user
 
 router = APIRouter(prefix="/api/auth", tags=["Auth", "API"])
 

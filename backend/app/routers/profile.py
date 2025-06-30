@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends
 from ..validation import schemas
-from ..database.database import Session, get_db
+from ..database.database import get_db
+from sqlalchemy.orm import Session
 from ..utils.exc import db_exc_check
 from ..services import users
 from ..utils.dependencies import get_current_user

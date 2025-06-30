@@ -2,7 +2,6 @@ from pydantic_settings import BaseSettings
 
 class Settings(BaseSettings):
     DB_URL: str
-    TEST_DB_URL: str
     SECRET_KEY: str
     REFRESH_SECRET_KEY: str
     ALGORITHM: str

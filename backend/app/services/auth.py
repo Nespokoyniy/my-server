@@ -1,6 +1,6 @@
 from fastapi import HTTPException
 from fastapi.security import OAuth2PasswordRequestForm
-from ..database.database import Session
+from sqlalchemy.orm import Session
 from ..validation import schemas
 from ..utils.hash import hash_pwd, verify_pwd
 from ..utils.exc import db_exc_check

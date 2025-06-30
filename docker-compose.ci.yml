@@ -1,0 +1,69 @@
+services:
+  test_db:
+    image: postgres:latest
+    environment:
+      - POSTGRES_DB=${TEST_DB_NAME}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - POSTGRES_USER=${USER}
+    networks:
+      - backend-ci
+    volumes:
+      - pg_test_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${USER} -d ${TEST_DB_NAME}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: /backend
+      dockerfile: Dockerfile
+    image: my-server-backend-ci:latest
+    networks:
+      - backend-ci
+    environment:
+      - DB_URL=${TEST_DB_URL}
+      - SECRET_KEY=${SECRET_KEY}
+      - REFRESH_SECRET_KEY=${REFRESH_SECRET_KEY}
+      - ALGORITHM=${ALGORITHM}
+      - TOKEN_EXPIRE_MINUTES=${TOKEN_EXPIRE_MINUTES}
+      - REFRESH_TOKEN_EXPIRE_MINUTES=${REFRESH_TOKEN_EXPIRE_MINUTES}
+      - REFRESH_ALGORITHM=${REFRESH_ALGORITHM}
+    command: >
+      sh -c "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload --reload-dir /backend/app"
+    depends_on:
+      test_db:
+        condition: service_healthy
+    ports:
+      - "8000:8000"
+  
+  tests:
+    build:
+      context: /
+      dockerfile: Dockerfile.tests
+    image: my-server-tests-ci:latest
+    networks:
+      - backend-ci
+    environment:
+      - DB_URL=${TEST_DB_URL}
+      - SECRET_KEY=${SECRET_KEY}
+      - REFRESH_SECRET_KEY=${REFRESH_SECRET_KEY}
+      - ALGORITHM=${ALGORITHM}
+      - TOKEN_EXPIRE_MINUTES=${TOKEN_EXPIRE_MINUTES}
+      - REFRESH_TOKEN_EXPIRE_MINUTES=${REFRESH_TOKEN_EXPIRE_MINUTES}
+      - REFRESH_ALGORITHM=${REFRESH_ALGORITHM}
+    command: pytest /tests
+    depends_on:
+      test_db:
+        condition: service_healthy
+      backend:
+        condition: service_started
+
+
+networks:
+  backend-ci:
+    driver: bridge
+
+volumes:
+  pg_test_data:

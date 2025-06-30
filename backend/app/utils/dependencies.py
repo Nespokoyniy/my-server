@@ -5,7 +5,8 @@ from jose import JWTError, jwt
 from datetime import datetime, timedelta, timezone
 from ..validation.schemas import Payload
 from fastapi import Depends, HTTPException
-from ..database.database import get_db, Session
+from ..database.database import get_db
+from sqlalchemy.orm import Session
 from sqlalchemy import exists, select
 from ..database import models
 
