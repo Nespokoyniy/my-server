@@ -40,7 +40,7 @@ services:
   
   tests:
     build:
-      context: /
+      context: .
       dockerfile: Dockerfile.tests
     image: my-server-tests-ci:latest
     networks:

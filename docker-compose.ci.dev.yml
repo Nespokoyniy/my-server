@@ -40,7 +40,7 @@ services:
   
   tests:
     build:
-      context: /
+      context: .
       dockerfile: Dockerfile.tests
     image: my-server-tests-ci-dev:latest
     networks:
@@ -54,9 +54,11 @@ services:
       - REFRESH_TOKEN_EXPIRE_MINUTES=${REFRESH_TOKEN_EXPIRE_MINUTES}
       - REFRESH_ALGORITHM=${REFRESH_ALGORITHM}
     command: sh -c "pytest && tail -f /dev/null"
+    tty: true
+    stdin_open: true
     volumes:
-      - /tests:/app/tests
-      - /backend:/app/backend
+      - ./tests:/app/tests
+      - ./backend:/app/backend
     depends_on:
       test_db:
         condition: service_healthy
