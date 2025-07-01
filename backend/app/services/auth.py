@@ -7,14 +7,13 @@ from ..utils.exc import db_exc_check
 from ..utils.dependencies import create_refresh_token, create_token
 from . import users
 
-
-def register(body: schemas.User, db: Session):
+def register(body: schemas.User, db: Session) -> schemas.User:
     body.password = hash_pwd(body.password)
     user = users.create_user(body, db)
     return user
 
 
-def login(form: OAuth2PasswordRequestForm, db: Session):
+def login(form: OAuth2PasswordRequestForm, db: Session) -> dict:
     user = db_exc_check(users.get_user_by_form, {"form": form, "db": db})
 
     if user is None or not verify_pwd(form.password, user["password"]):

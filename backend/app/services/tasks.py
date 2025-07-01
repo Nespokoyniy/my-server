@@ -1,6 +1,8 @@
 from ..database import models
-from sqlalchemy import delete, select, update
+from sqlalchemy import Row, RowMapping, Sequence, delete, select, update
+from typing import Any
 from sqlalchemy.orm import Session
+from ..validation import schemas
 
 TASK_FIELDS = [
     models.Task.user_task_id,
@@ -12,25 +14,28 @@ TASK_FIELDS = [
 ]
 
 
-def complete_uncomplete_task(user_task_id, user_id, db: Session):
+def complete_uncomplete_task(user_task_id: int, user_id: int, db: Session) -> Row[Any] | None:
     is_completed = db.execute(
         select(models.Task.is_completed).where(
             models.Task.user_task_id == user_task_id, models.Task.owner == user_id
         )
-    )
-    reverse_is_completed = not is_completed
+    ).scalar_one_or_none()
+    
+    if is_completed is None:
+        return None
 
     resp = db.execute(
         update(models.Task.is_completed)
         .where(models.Task.user_task_id == user_task_id, models.Task.owner == user_id)
         .returning(*TASK_FIELDS)
-        .values(**{"is_completed": reverse_is_completed})
+        .values(is_completed=not is_completed)
     ).first()
-
+    
+    db.commit()
     return resp
 
 
-def create_task(body, db: Session):
+def create_task(body: schemas.TaskWithOwner, db: Session) -> models.Task:
     body = body.model_dump()
     last_task = (
         db.execute(
@@ -38,8 +43,7 @@ def create_task(body, db: Session):
             .where(models.Task.owner == body["owner"])
             .order_by(models.Task.user_task_id.desc())
         )
-        .scalars()
-        .first()
+        .scalar_one_or_none()
     )
 
     if last_task is None:
@@ -57,7 +61,7 @@ def create_task(body, db: Session):
     return task
 
 
-def get_tasks(user_id, db: Session):
+def get_tasks(user_id: int, db: Session) -> Sequence[RowMapping]:
     tasks = (
         db.execute(select(*TASK_FIELDS).where(models.Task.owner == user_id))
         .mappings()
@@ -66,7 +70,7 @@ def get_tasks(user_id, db: Session):
     return tasks
 
 
-def get_task(user_id, user_task_id, db: Session):
+def get_task(user_id: int, user_task_id: int, db: Session) -> RowMapping:
     task = (
         db.execute(
             select(*TASK_FIELDS).where(
@@ -77,10 +81,12 @@ def get_task(user_id, user_task_id, db: Session):
         .first()
     )
 
-    return task
+    return task[0] if task else None
 
 
-def update_task(user_task_id, body, db: Session):
+def update_task(
+    user_task_id: int, body: schemas.TaskWithOwner, db: Session
+) -> Row[Any]:
     task = db.execute(
         update(models.Task)
         .where(
@@ -93,16 +99,16 @@ def update_task(user_task_id, body, db: Session):
     db.commit()
     db.refresh(task)
 
-    return task
+    return task[0] if task else None
 
 
-def delete_task(user_id, user_task_id, db: Session):
+def delete_task(user_id: int, user_task_id: int, db: Session) -> Row[tuple[int]] | None:
     task = db.execute(
         delete(models.Task)
         .where(models.Task.user_task_id == user_task_id, models.Task.owner == user_id)
         .returning(models.Task.id)
     ).first()
-    db.commit()
-    db.refresh(task)
 
-    return task
+    db.commit()
+    
+    return task[0] if task else None

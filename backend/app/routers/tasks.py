@@ -11,7 +11,7 @@ from ..utils.dependencies import get_current_user
 router = APIRouter(prefix="/api/tasks", tags=["Tasks", "API"])
 
 
-@router.put("/{user_task_id}/status", status_code=200)
+@router.put("/{user_task_id}/status", status_code=200, response_model=schemas.TaskOut)
 def complete_uncomplete_task(
     user_task_id: int,
     db: Session = Depends(get_db),
@@ -24,7 +24,7 @@ def complete_uncomplete_task(
     return resp
 
 
-@router.post("/", status_code=201)
+@router.post("/", status_code=201, response_model=schemas.TaskOut)
 def create_task(
     body: schemas.Task,
     db: Session = Depends(get_db),
@@ -35,13 +35,13 @@ def create_task(
     return resp
 
 
-@router.get("/", status_code=200)
+@router.get("/", status_code=200, response_model=list[schemas.TaskOut])
 def get_tasks(db: Session = Depends(get_db), user_id: int = Depends(get_current_user)):
     my_tasks = tasks.get_tasks(user_id, db)
     return my_tasks
 
 
-@router.get("/{task_id}", status_code=200)
+@router.get("/{task_id}", status_code=200, response_model=schemas.TaskOut)
 def get_task(
     task_id: int,
     db: Session = Depends(get_db),
@@ -55,7 +55,7 @@ def get_task(
     return task
 
 
-@router.put("/{task_id}", status_code=200)
+@router.put("/{task_id}", status_code=200, response_model=schemas.TaskOut)
 def update_task(
     body: schemas.Task,
     task_id: int,
@@ -82,8 +82,6 @@ def delete_task(
     task = db_exc_check(
         tasks.delete_task, {"user_id": user_id, "task_id": task_id, "db": db}
     )
-
+    
     if task is None:
         raise HTTPException(404, detail="the task doesn't exist")
-
-    return

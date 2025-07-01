@@ -10,7 +10,7 @@ from ..utils.dependencies import get_current_user
 router = APIRouter(prefix="/api/recur-tasks", tags=["Recur-tasks", "API"])
 
 
-@router.put("/{user_task_id}/status", status_code=200)
+@router.put("/{user_task_id}/status", status_code=200, response_model=schemas.RecurTaskOut)
 def complete_uncomplete_recur_task(
     user_task_id: int,
     db: Session = Depends(get_db),
@@ -23,18 +23,18 @@ def complete_uncomplete_recur_task(
     return resp
 
 
-@router.post("/", status_code=201)
+@router.post("/", status_code=201, response_model=schemas.RecurTaskOut)
 def create_recur_task(
     body: schemas.RecurTask,
     db: Session = Depends(get_db),
     user_id: int = Depends(get_current_user),
 ):
-    body = schemas.TaskWithOwner(**body.model_dump(), owner=user_id)
+    body = schemas.RecurTaskWithOwner(**body.model_dump(), owner=user_id)
     resp = db_exc_check(rt.create_recur_task, {"body": body, "db": db})
     return resp
 
 
-@router.get("/", status_code=200)
+@router.get("/", status_code=200, response_model=list[schemas.RecurTaskOut])
 def get_recur_tasks(
     db: Session = Depends(get_db), user_id: int = Depends(get_current_user)
 ):
@@ -42,7 +42,7 @@ def get_recur_tasks(
     return tasks
 
 
-@router.get("/{user_task_id}", status_code=200)
+@router.get("/{user_task_id}", status_code=200, response_model=schemas.RecurTaskOut)
 def get_recur_task(
     user_task_id: int,
     db: Session = Depends(get_db),
@@ -56,14 +56,14 @@ def get_recur_task(
     return task
 
 
-@router.put("/{user_task_id}", status_code=200)
-def update_task(
+@router.put("/{user_task_id}", status_code=200, response_model=schemas.RecurTaskOut)
+def update_recur_task(
     body: schemas.RecurTask,
     user_task_id: int,
     db: Session = Depends(get_db),
     user_id: int = Depends(get_current_user),
 ):
-    body = schemas.TaskWithOwner(**body.model_dump(), owner=user_id)
+    body = schemas.RecurTaskWithOwner(**body.model_dump(), owner=user_id)
     task = db_exc_check(
         rt.update_recur_task, {"body": body, "db": db, "user_task_id": user_task_id}
     )
@@ -75,7 +75,7 @@ def update_task(
 
 
 @router.delete("/{user_task_id}", status_code=204)
-def delete_task(
+def delete_recur_task(
     user_task_id: int,
     db: Session = Depends(get_db),
     user_id: int = Depends(get_current_user),
