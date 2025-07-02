@@ -87,5 +87,3 @@ def delete_recur_task(
 
     if task is None:
         raise HTTPException(404, detail="the recurring task doesn't exist")
-
-    return

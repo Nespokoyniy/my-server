@@ -36,6 +36,7 @@ class UserOut(BaseModel):
     id: int
     name: str
     email: EmailStr = None
+    date_created: datetime
     
 class Payload(BaseModel):
     sub: str

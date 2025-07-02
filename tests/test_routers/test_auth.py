@@ -18,7 +18,7 @@ class TestLogin:
         self, username: str, password: str, client: TestClient
     ):
         resp = client.post(
-            "http://localhost:8000/api/auth/login",
+            "/api/auth/login",
             data={"username": username, "password": password},
         )
 
@@ -33,7 +33,7 @@ class TestLogin:
     )
     def test_login_with_no_data_returns_400(self, data: dict, client: TestClient):
         resp = client.post(
-            "http://localhost:8000/api/auth/login",
+            "/api/auth/login",
             data=data,
         )
 

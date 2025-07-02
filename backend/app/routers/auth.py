@@ -9,7 +9,7 @@ from fastapi.security import OAuth2PasswordRequestForm
 router = APIRouter(prefix="/api/auth", tags=["Auth", "API"])
 
 
-@router.post("/register", status_code=201, response_model=dict)
+@router.post("/register", status_code=201)
 def register(body: schemas.User, db: Session = Depends(get_db)):
     db_exc_check(auth.register, {"body": body, "db": db})
     return {"message": "your account was registered"}

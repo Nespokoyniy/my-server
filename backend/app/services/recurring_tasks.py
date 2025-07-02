@@ -1,9 +1,8 @@
 from ..database import models
 from sqlalchemy import delete, select, update
 from sqlalchemy.orm import Session
-from typing import Any
+from typing import Optional
 from ..validation import schemas
-from sqlalchemy import Row, Sequence, RowMapping
 
 TASK_FIELDS = [
     models.RecurringTask.user_task_id,
@@ -18,67 +17,66 @@ TASK_FIELDS = [
 
 def complete_uncomplete_recur_task(
     user_task_id: int, user_id: int, db: Session
-) -> Row[Any]:
-    is_completed = db.execute(
-        select(models.RecurringTask.is_completed).where(
-            models.RecurringTask.user_task_id == user_task_id,
-            models.RecurringTask.owner == user_id,
-        )
-    )
-    reverse_is_completed = not is_completed
+) -> Optional[schemas.RecurTaskOut]:
+    with db.begin():
+        task = db.execute(
+            select(models.RecurringTask.is_completed).where(
+                models.RecurringTask.user_task_id == user_task_id,
+                models.RecurringTask.owner == user_id,
+            )
+        ).scalar_one_or_none()
+        
+        if task is None:
+            return None
 
-    resp = db.execute(
-        update(models.RecurringTask.is_completed)
-        .where(
-            models.RecurringTask.user_task_id == user_task_id,
-            models.RecurringTask.owner == user_id,
-        )
-        .returning(*TASK_FIELDS)
-        .values(**{"is_completed": reverse_is_completed})
-    ).first()
+        resp = db.execute(
+            update(models.RecurringTask.is_completed)
+            .where(
+                models.RecurringTask.user_task_id == user_task_id,
+                models.RecurringTask.owner == user_id,
+            )
+            .returning(*TASK_FIELDS)
+            .values(is_completed=not task.is_completed)
+        ).first()
 
-    return resp
+        return resp
 
 
 def create_recur_task(
     body: schemas.RecurTaskWithOwner, db: Session
-) -> models.RecurringTask:
+) -> schemas.RecurTaskOut:
     body = body.model_dump()
-    last_task = (
-        db.execute(
-            select(models.Task)
-            .where(models.Task.owner == body["owner"])
-            .order_by(models.Task.user_task_id.desc())
+    with db.begin():
+        last_task = (
+            db.execute(
+                select(models.Task)
+                .where(models.Task.owner == body["owner"])
+                .order_by(models.Task.user_task_id.desc())
+                .with_for_update()
+            )
+            .scalar_one_or_none()
         )
-        .scalars()
-        .first()
-    )
 
-    if last_task is None:
-        user_task_id = 1
-    else:
-        user_task_id = last_task.user_task_id
-        user_task_id += 1
+        user_task_id = 1 if last_task is None else last_task.user_task_id + 1
 
-    body["user_task_id"] = user_task_id
-    task = models.RecurringTask(**body)
-    db.add(task)
-    db.commit()
-    db.refresh(task)
-
-    return task
+        body["user_task_id"] = user_task_id
+        task = models.RecurringTask(**body)
+        db.add(task)
+        db.flush()
+        task = schemas.RecurTaskOut(**body)
+        return task
 
 
-def get_recur_tasks(user_id: int, db: Session) -> Sequence[RowMapping]:
+def get_recur_tasks(user_id: int, db: Session) -> list[schemas.RecurTaskOut]:
     tasks = (
         db.execute(select(*TASK_FIELDS).where(models.RecurringTask.owner == user_id))
-        .mappings()
+        .scalars()
         .all()
     )
-    return tasks
+    return [schemas.TaskOut(task) for task in tasks]
 
 
-def get_recur_task(user_id: int, user_task_id: int, db: Session) -> RowMapping:
+def get_recur_task(user_id: int, user_task_id: int, db: Session) -> Optional[schemas.RecurTaskOut]:
     task = (
         db.execute(
             select(*TASK_FIELDS).where(
@@ -86,43 +84,51 @@ def get_recur_task(user_id: int, user_task_id: int, db: Session) -> RowMapping:
                 models.RecurringTask.owner == user_id,
             )
         )
-        .mappings()
+        .scalars()
         .first()
     )
 
-    return task
+    if task:
+        task = schemas.RecurTaskOut(**task._asdict())
+        return task
+
+    return None
 
 
 def update_recur_task(
     user_task_id: int, body: schemas.RecurTaskWithOwner, db: Session
-) -> Row[Any]:
-    task = db.execute(
-        update(models.RecurringTask)
-        .where(
-            models.RecurringTask.user_task_id == user_task_id,
-            models.RecurringTask.owner == body["owner"],
-        )
-        .returning(*TASK_FIELDS)
-        .values(**body.model_dump())
-    ).first()
+) -> Optional[schemas.RecurTaskOut]:
+    with db.begin():
+        task = db.execute(
+            update(models.RecurringTask)
+            .where(
+                models.RecurringTask.user_task_id == user_task_id,
+                models.RecurringTask.owner == body["owner"],
+            )
+            .returning(*TASK_FIELDS)
+            .values(**body.model_dump())
+        ).first()
 
-    db.commit()
-    db.refresh(task)
+        if task:
+            task = schemas.RecurTaskOut(**task._asdict())
+            return task
 
-    return task
+        return None
 
 
-def delete_recur_task(user_id: int, user_task_id: int, db: Session) -> Row[tuple[int]]:
-    task = db.execute(
-        delete(models.RecurringTask)
-        .where(
-            models.RecurringTask.user_task_id == user_task_id,
-            models.RecurringTask.owner == user_id,
-        )
-        .returning(models.RecurringTask.id)
-    ).first()
+def delete_recur_task(user_id: int, user_task_id: int, db: Session) -> Optional[schemas.RecurTaskOut]:
+    with db.begin():
+        task = db.execute(
+            delete(models.RecurringTask)
+            .where(
+                models.RecurringTask.user_task_id == user_task_id,
+                models.RecurringTask.owner == user_id,
+            )
+            .returning(models.RecurringTask.id)
+        ).first()
 
-    db.commit()
-    db.refresh(task)
+        if task:
+            task = schemas.RecurTaskOut(**task._asdict())
+            return task
 
-    return task
+        return None

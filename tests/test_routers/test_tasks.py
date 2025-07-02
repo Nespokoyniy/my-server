@@ -4,9 +4,9 @@ import pytest
 class TestGetTasks():
     
     def test_get_tasks_returns_200(self, token, client: TestClient):
-        tasks = client.get("http://localhost:8000/api/tasks", headers=token)
+        tasks = client.get("/api/tasks", headers=token)
         assert tasks.status_code == 200
         
     def test_get_tasks_auth_returns_401(self, client: TestClient):
-        resp = client.get("http://localhost:8000/api/tasks")
+        resp = client.get("/api/tasks")
         assert resp.status_code == 401
