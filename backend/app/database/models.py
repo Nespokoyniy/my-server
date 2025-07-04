@@ -36,7 +36,7 @@ class RecurringTask(Base):
 class User(Base):
     __tablename__ = "users"
     id = Column(Integer, primary_key=True, unique=True)
-    name = Column(String, unique=False, nullable=False)
+    name = Column(String, unique=True, nullable=False)
     email = Column(String, nullable=True)
     password = Column(String, nullable=False)
     date_created = Column(

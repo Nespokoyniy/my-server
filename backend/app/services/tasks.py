@@ -1,8 +1,9 @@
 from ..database import models
 from sqlalchemy import delete, select, update
-from typing import  Optional
+from typing import Optional
 from sqlalchemy.orm import Session
 from ..validation import schemas
+import datetime
 
 TASK_FIELDS = [
     models.Task.user_task_id,
@@ -29,7 +30,9 @@ def complete_uncomplete_task(
 
         resp = db.execute(
             update(models.Task)
-            .where(models.Task.user_task_id == user_task_id, models.Task.owner == user_id)
+            .where(
+                models.Task.user_task_id == user_task_id, models.Task.owner == user_id
+            )
             .returning(*TASK_FIELDS)
             .values(is_completed=not task.is_completed)
         ).first()
@@ -41,6 +44,7 @@ def complete_uncomplete_task(
 
 def create_task(body: schemas.TaskWithOwner, db: Session) -> schemas.TaskOut:
     body = body.model_dump()
+    body["date_created"] = datetime.datetime.now(datetime.timezone.utc)
     with db.begin():
         last_task = db.execute(
             select(models.Task)
@@ -55,7 +59,7 @@ def create_task(body: schemas.TaskWithOwner, db: Session) -> schemas.TaskOut:
         task = models.Task(**body)
         db.add(task)
         db.flush()
-        task = schemas.TaskOut(**body)
+        task = schemas.TaskOut.model_validate(**body)
         return task
 
 
@@ -113,7 +117,9 @@ def delete_task(
     with db.begin():
         task = db.execute(
             delete(models.Task)
-            .where(models.Task.user_task_id == user_task_id, models.Task.owner == user_id)
+            .where(
+                models.Task.user_task_id == user_task_id, models.Task.owner == user_id
+            )
             .returning(models.Task.id)
         ).first()
 

@@ -17,10 +17,11 @@ def register(body: schemas.User, db: Session) -> schemas.User:
 def login(form: OAuth2PasswordRequestForm, db: Session) -> dict:
     user = db_exc_check(users.get_user_by_form, {"form": form, "db": db})
 
-    if user is None or not verify_pwd(form.password, user["password"]):
+    if user is None or not verify_pwd(form.password, user.password):
         raise HTTPException(400, detail="Invalid username or password")
 
     return {
-        "access_token": create_token(user["id"]),
-        "refresh_token": create_refresh_token(user["id"]),
+        "access_token": create_token(user.id),
+        "refresh_token": create_refresh_token(user.id),
+        "token_type": "bearer",
     }

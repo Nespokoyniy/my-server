@@ -53,7 +53,7 @@ services:
       - TOKEN_EXPIRE_MINUTES=${TOKEN_EXPIRE_MINUTES}
       - REFRESH_TOKEN_EXPIRE_MINUTES=${REFRESH_TOKEN_EXPIRE_MINUTES}
       - REFRESH_ALGORITHM=${REFRESH_ALGORITHM}
-    command: sh -c "pytest && tail -f /dev/null"
+    command: sh -c "pytest; tail -f /dev/null"
     tty: true
     stdin_open: true
     volumes:

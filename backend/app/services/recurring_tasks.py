@@ -3,6 +3,7 @@ from sqlalchemy import delete, select, update
 from sqlalchemy.orm import Session
 from typing import Optional
 from ..validation import schemas
+import datetime
 
 TASK_FIELDS = [
     models.RecurringTask.user_task_id,
@@ -25,7 +26,7 @@ def complete_uncomplete_recur_task(
                 models.RecurringTask.owner == user_id,
             )
         ).scalar_one_or_none()
-        
+
         if task is None:
             return None
 
@@ -46,16 +47,14 @@ def create_recur_task(
     body: schemas.RecurTaskWithOwner, db: Session
 ) -> schemas.RecurTaskOut:
     body = body.model_dump()
+    body["date_created"] = datetime.datetime.now(datetime.timezone.utc)
     with db.begin():
-        last_task = (
-            db.execute(
-                select(models.Task)
-                .where(models.Task.owner == body["owner"])
-                .order_by(models.Task.user_task_id.desc())
-                .with_for_update()
-            )
-            .scalar_one_or_none()
-        )
+        last_task = db.execute(
+            select(models.Task)
+            .where(models.Task.owner == body["owner"])
+            .order_by(models.Task.user_task_id.desc())
+            .with_for_update()
+        ).scalar_one_or_none()
 
         user_task_id = 1 if last_task is None else last_task.user_task_id + 1
 
@@ -63,7 +62,7 @@ def create_recur_task(
         task = models.RecurringTask(**body)
         db.add(task)
         db.flush()
-        task = schemas.RecurTaskOut(**body)
+        task = schemas.RecurTaskOut.model_validate(**body)
         return task
 
 
@@ -76,7 +75,9 @@ def get_recur_tasks(user_id: int, db: Session) -> list[schemas.RecurTaskOut]:
     return [schemas.TaskOut(task) for task in tasks]
 
 
-def get_recur_task(user_id: int, user_task_id: int, db: Session) -> Optional[schemas.RecurTaskOut]:
+def get_recur_task(
+    user_id: int, user_task_id: int, db: Session
+) -> Optional[schemas.RecurTaskOut]:
     task = (
         db.execute(
             select(*TASK_FIELDS).where(
@@ -116,7 +117,9 @@ def update_recur_task(
         return None
 
 
-def delete_recur_task(user_id: int, user_task_id: int, db: Session) -> Optional[schemas.RecurTaskOut]:
+def delete_recur_task(
+    user_id: int, user_task_id: int, db: Session
+) -> Optional[schemas.RecurTaskOut]:
     with db.begin():
         task = db.execute(
             delete(models.RecurringTask)

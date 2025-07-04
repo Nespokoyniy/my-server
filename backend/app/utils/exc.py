@@ -22,11 +22,3 @@ def db_exc_check(func, args: dict):
     except ValueError as e:
         db.rollback()
         raise HTTPException(status_code=400, detail=str(e))
-
-    except Exception as e:
-        db.rollback()
-        print(e)
-        raise HTTPException(
-            status_code=500,
-            detail="An unexpected error occurred. Please contact support.",
-        )

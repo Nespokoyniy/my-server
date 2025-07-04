@@ -11,9 +11,17 @@ from backend.app.main import app
 @pytest.fixture
 def test_db():
     engine = create_engine(ss.DB_URL)
-    SessionLocal = sessionmaker(autoflush=False, bind=engine)
+    connection = engine.connect()
+    transaction = connection.begin()
+    SessionLocal = sessionmaker(autoflush=False, bind=connection)
     test_db = SessionLocal()
-    return test_db
+    
+    yield test_db
+    
+    test_db.close()
+    transaction.rollback()
+    connection.close()
+    
 
 
 @pytest.fixture
@@ -25,24 +33,21 @@ def client(test_db):
 
 
 @pytest.fixture
-def register(client: TestClient):
-    client.post(
+def token(client: TestClient):
+    resp = client.post(
         "/api/auth/register",
         json={
             "name": "example",
-            "password": "example123",
             "email": "example@gmail.com",
+            "password": "example123",
         },
     )
 
-
-@pytest.fixture
-def token(client: TestClient, register):
     token = client.post(
         "/api/auth/login",
         data={"username": "example", "password": "example123"},
     )
-    print(token)
+
     access_token = token.json()["access_token"]
 
     headers = {"Authorization": f"Bearer {access_token}"}

@@ -5,6 +5,8 @@ from sqlalchemy.orm import Session
 from ..database import models
 from sqlalchemy import delete, select, update
 from ..validation import schemas
+import datetime
+from fastapi import HTTPException
 
 USER_FIELDS = [
     models.User.id,
@@ -17,12 +19,22 @@ USER_FIELDS_AND_PWD = USER_FIELDS.copy() + [models.User.password]
 
 
 def create_user(body: schemas.User, db: Session) -> schemas.UserOut:
-    with db.begin():
-        body = body.model_dump()
-        user = models.User(**body)
-        db.add(user)
-        user = schemas.UserOut(**body)
-        return user
+    body = body.model_dump()
+    user = (
+        db.execute(select(*USER_FIELDS).where(models.User.name == body["name"]))
+        .scalars()
+        .first()
+    )
+
+    if user:
+        raise HTTPException(400, detail="Username is already in use")
+
+    body["date_created"] = datetime.datetime.now(datetime.timezone.utc)
+    user = models.User(**body)
+    db.add(user)
+    db.commit()
+    db.refresh(user)
+    return schemas.UserOut.model_validate(user)
 
 
 def get_user(user_id: int, db: Session) -> Optional[schemas.UserOut]:
@@ -42,20 +54,18 @@ def get_user(user_id: int, db: Session) -> Optional[schemas.UserOut]:
 def get_user_by_form(
     form: OAuth2PasswordRequestForm, db: Session
 ) -> Optional[schemas.UserOut]:
-    users = (
-        db.execute(
-            select(*USER_FIELDS_AND_PWD).where(models.User.name == form.username)
-        )
-        .scalars()
-        .all()
-    )
+    user = db.execute(
+        select(*USER_FIELDS_AND_PWD).where(models.User.name == form.username)
+    ).first()
 
-    for user in users:
-        if verify_pwd(form.password, user["password"]):
-            user = schemas.UserOut(**user._asdict())
-            return user
+    if not user:
+        return None
 
-    return None
+    if not verify_pwd(form.password, user.password):
+        user = schemas.UserOut(**user._asdict())
+        return None
+
+    return user
 
 
 def update_user(user_id: int, body, db: Session) -> Optional[schemas.UserOut]:
@@ -74,7 +84,7 @@ def update_user(user_id: int, body, db: Session) -> Optional[schemas.UserOut]:
         return None
 
 
-def delete_user(user_id: int, db: Session) -> schemas.UserOut:
+def delete_user(user_id: int, db: Session) -> Optional[schemas.UserOut]:
     with db.begin():
         user = (
             db.execute(
