@@ -15,13 +15,14 @@ def test_db():
     transaction = connection.begin()
     SessionLocal = sessionmaker(autoflush=False, bind=connection)
     test_db = SessionLocal()
-    
+
     yield test_db
-    
+
+    test_db.rollback()
     test_db.close()
     transaction.rollback()
     connection.close()
-    
+    engine.dispose()
 
 
 @pytest.fixture
@@ -52,3 +53,22 @@ def token(client: TestClient):
 
     headers = {"Authorization": f"Bearer {access_token}"}
     return headers
+
+
+@pytest.fixture
+def create_tasks(token, client: TestClient):
+    client.post(
+        "/api/tasks",
+        json={"name": "task 1", "description": "desc 1", "priority": 1},
+        headers=token,
+    )
+    client.post(
+        "/api/tasks",
+        json={"name": "task 2", "description": "desc 2", "priority": 2},
+        headers=token,
+    )
+    client.post(
+        "/api/tasks",
+        json={"name": "task 3", "description": "desc 3", "priority": 3},
+        headers=token,
+    )
