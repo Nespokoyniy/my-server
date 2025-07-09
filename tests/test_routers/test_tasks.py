@@ -38,11 +38,13 @@ class TestCompleteUncompleteTask:
 
 class TestCreateTask:
     def test_create_task_returns_201(self, token, create_tasks, client: TestClient):
+        print("NINE")
         resp = client.post(
             "/api/tasks",
             json={"name": "new task", "description": "new description", "priority": 8},
             headers=token,
         )
+        print("TEN")
         assert resp.status_code == 201
         assert resp.name == "new task"
         assert resp.user_task_id == 4
