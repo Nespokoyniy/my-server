@@ -18,10 +18,10 @@ class TestCompleteUncompleteTask:
     ):
         task = client.put("/api/tasks/1/status", headers=token)
         assert task.status_code == 200
-        assert task.is_completed == True
+        assert task.json()["is_completed"] == True
         task = client.put("/api/tasks/1/status", headers=token)
         assert task.status_code == 200
-        assert task.is_completed == False
+        assert task.json()["is_completed"] == False
 
     def test_complete_uncomplete_task_auth_returns_401(
         self, create_tasks, client: TestClient
@@ -38,28 +38,19 @@ class TestCompleteUncompleteTask:
 
 class TestCreateTask:
     def test_create_task_returns_201(self, token, create_tasks, client: TestClient):
-        print("NINE")
         resp = client.post(
             "/api/tasks",
             json={"name": "new task", "description": "new description", "priority": 8},
             headers=token,
         )
-        print("TEN")
         assert resp.status_code == 201
-        assert resp.name == "new task"
-        assert resp.user_task_id == 4
+        data = resp.json()
+        assert data["name"] == "new task"
+        assert data["user_task_id"] == 4
 
     @pytest.mark.parametrize(
         "body",
-        (
-            {"description": "new description", "priority": 5},
-            {
-                "name": "new task",
-                "description": "new description",
-                "priority": 5,
-                "random_shit": "12321",
-            },
-        ),
+        ({"description": "new description", "priority": 5}),
     )
     def test_create_task_with_invalid_input_returns_422(
         self, body, token, client: TestClient

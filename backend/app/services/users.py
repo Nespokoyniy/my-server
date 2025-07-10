@@ -69,32 +69,33 @@ def get_user_by_form(
 
 
 def update_user(user_id: int, body, db: Session) -> Optional[schemas.UserOut]:
-    with db.begin():
-        user = db.execute(
-            update(models.User)
-            .where(models.User.id == user_id)
-            .returning(*USER_FIELDS)
-            .values(**body.model_dump())
-        ).first()
+    user = db.execute(
+        update(models.User)
+        .where(models.User.id == user_id)
+        .returning(*USER_FIELDS)
+        .values(**body.model_dump())
+    ).first()
 
-        if user:
-            user = schemas.UserOut(**user._asdict())
-            return user
-
-        return None
-
-
-def delete_user(user_id: int, db: Session) -> Optional[schemas.UserOut]:
-    with db.begin():
-        user = (
-            db.execute(
-                delete(models.User)
-                .where(models.User.id == user_id)
-                .returning(models.User.id)
-            )
-            .scalars()
-            .first()
-        )
-
+    if user:
+        db.commit()
         user = schemas.UserOut(**user._asdict())
         return user
+
+    return None
+
+
+def delete_user(user_id: int, db: Session) -> int:
+    user_id = (
+        db.execute(
+            delete(models.User)
+            .where(models.User.id == user_id)
+            .returning(models.User.id)
+        )
+        .scalars()
+        .first()
+    )
+
+    if user_id:
+        db.commit()
+        return user_id
+    return None

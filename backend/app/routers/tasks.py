@@ -21,6 +21,10 @@ def complete_uncomplete_task(
         tasks.complete_uncomplete_task,
         {"db": db, "user_task_id": user_task_id, "user_id": user_id},
     )
+
+    if resp is None:
+        raise HTTPException(404, detail="the task doesn't exist")
+    
     return resp
 
 
@@ -82,6 +86,6 @@ def delete_task(
     task = db_exc_check(
         tasks.delete_task, {"user_id": user_id, "task_id": task_id, "db": db}
     )
-    
+
     if task is None:
         raise HTTPException(404, detail="the task doesn't exist")
