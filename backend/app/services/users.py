@@ -45,8 +45,7 @@ def get_user(user_id: int, db: Session) -> Optional[schemas.UserOut]:
     )
 
     if user:
-        user = schemas.UserOut(**user._asdict())
-        return user
+        return schemas.UserOut.model_validate(user)
 
     return None
 
@@ -62,7 +61,6 @@ def get_user_by_form(
         return None
 
     if not verify_pwd(form.password, user.password):
-        user = schemas.UserOut(**user._asdict())
         return None
 
     return user
@@ -78,8 +76,7 @@ def update_user(user_id: int, body, db: Session) -> Optional[schemas.UserOut]:
 
     if user:
         db.commit()
-        user = schemas.UserOut(**user._asdict())
-        return user
+        return schemas.UserOut.model_validate(user)
 
     return None
 

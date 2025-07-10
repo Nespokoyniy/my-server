@@ -6,7 +6,7 @@ from ..utils.exc import db_exc_check
 from ..services import auth
 from fastapi.security import OAuth2PasswordRequestForm
 
-router = APIRouter(prefix="/api/auth", tags=["Auth", "API"])
+router = APIRouter(prefix="/api", tags=["Auth", "API"])
 
 
 @router.post("/register", status_code=201)

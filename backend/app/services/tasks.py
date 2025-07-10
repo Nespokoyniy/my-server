@@ -34,9 +34,8 @@ def complete_uncomplete_task(
         .values(is_completed=not task.is_completed)
     ).first()
 
-    resp = schemas.TaskOut(**resp._asdict())
     db.commit()
-    return resp
+    return schemas.TaskOut.model_validate(resp)
 
 
 def create_task(body: schemas.TaskWithOwner, db: Session) -> schemas.TaskOut:
@@ -77,13 +76,12 @@ def get_task(user_id: int, user_task_id: int, db: Session) -> Optional[schemas.T
                 models.Task.user_task_id == user_task_id, models.Task.owner == user_id
             )
         )
-        .scalars()
+        .mappings()
         .first()
     )
 
     if task:
-        task = schemas.TaskOut(**task._asdict())
-        return task
+        return schemas.TaskOut.model_validate(task)
 
     return None
 
@@ -109,18 +107,21 @@ def update_task(
     return None
 
 
-def delete_task(
-    user_id: int, user_task_id: int, db: Session
-) -> Optional[schemas.TaskOut]:
-    task = db.execute(
-        delete(models.Task)
-        .where(models.Task.user_task_id == user_task_id, models.Task.owner == user_id)
-        .returning(models.Task.id)
-    ).first()
+def delete_task(user_id: int, user_task_id: int, db: Session) -> int:
+    task_id = (
+        db.execute(
+            delete(models.Task)
+            .where(
+                models.Task.user_task_id == user_task_id, models.Task.owner == user_id
+            )
+            .returning(models.Task.id)
+        )
+        .scalars()
+        .first()
+    )
 
-    if task:
+    if task_id:
         db.commit()
-        task = schemas.TaskOut(**task._asdict())
-        return task
+        return task_id
 
     return None

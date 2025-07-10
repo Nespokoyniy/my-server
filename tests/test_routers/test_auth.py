@@ -5,7 +5,7 @@ from fastapi.testclient import TestClient
 class TestLogin:
     def test_login_returns_200(self, register, client: TestClient):
         resp = client.post(
-            "/api/auth/login",
+            "/api/login",
             data={"username": "example", "password": "example123"},
         )
 
@@ -18,7 +18,7 @@ class TestLogin:
         self, register, username: str, password: str, client: TestClient
     ):
         resp = client.post(
-            "/api/auth/login",
+            "/api/login",
             data={"username": username, "password": password},
         )
 
@@ -35,8 +35,41 @@ class TestLogin:
         self, register, data: dict, client: TestClient
     ):
         resp = client.post(
-            "/api/auth/login",
+            "/api/login",
             data=data,
         )
 
         assert resp.status_code == 400
+
+
+class TestRegister:
+    @pytest.mark.parametrize(
+        "body",
+        (
+            {
+                "name": "example",
+                "password": "example123",
+                "email": "example@gmail.com",
+            },
+            {
+                "name": "example",
+                "password": "example123",
+            },
+        ),
+    )
+    def test_register_returns_201(self, body, client: TestClient):
+        resp = client.post("/api/register", json=body)
+
+        assert resp.status_code == 201
+
+    @pytest.mark.parametrize(
+        "body",
+        ({"name": "example", "email": "example@gmail.com"}, {"password": "example123"}),
+    )
+    def test_register_with_wrong_body_returns_422(self, body, client: TestClient):
+        resp = client.post(
+            "/api/register",
+            json=body,
+        )
+
+        assert resp.status_code == 422

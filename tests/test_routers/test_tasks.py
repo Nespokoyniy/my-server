@@ -35,6 +35,13 @@ class TestCompleteUncompleteTask:
         resp = client.put("/api/tasks/0/status", headers=token)
         assert resp.status_code == 404
 
+    def test_complete_uncomplete_task_user_doesnt_own_returns_404(
+        self, token, token_2, create_tasks, client: TestClient
+    ):
+        resp = client.put("/api/tasks/1/status", headers=token)
+        resp_2 = client.put("/api/tasks/1/status", headers=token_2)
+        assert resp.status_code != resp_2
+
 
 class TestCreateTask:
     def test_create_task_returns_201(self, token, create_tasks, client: TestClient):
@@ -68,3 +75,25 @@ class TestCreateTask:
             json={"description": "new description", "priority": 5},
         )
         assert resp.status_code == 401
+
+
+class TestGetTask:
+    def test_get_task_returns_200(self, create_tasks, client: TestClient, token):
+        resp = client.get("/api/tasks/1", headers=token)
+        assert resp.status_code == 200
+        assert resp.json()["name"] == "task 1"
+
+    def test_get_task_returns_401(self, create_tasks, client: TestClient):
+        resp = client.get("/api/tasks/1")
+        assert resp.status_code == 401
+
+    def test_get_task_returns_404(self, create_tasks, client: TestClient, token):
+        resp = client.get("/api/tasks/0", headers=token)
+        assert resp.status_code == 404
+
+    def test_get_task_user_doesnt_own_returns_404(
+        self, token, token_2, create_tasks, client: TestClient
+    ):
+        resp = client.put("/api/tasks/1", headers=token)
+        resp_2 = client.put("/api/tasks/1", headers=token_2)
+        assert resp.status_code != resp_2

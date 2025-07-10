@@ -34,9 +34,9 @@ def complete_uncomplete_recur_task(
         .values(is_completed=not task.is_completed)
     ).first()
 
-    resp = schemas.RecurTaskOut(**resp._asdict())
+    
     db.commit()
-    return resp
+    return schemas.RecurTaskOut.model_validate(resp)
 
 def create_recur_task(
     body: schemas.RecurTaskWithOwner, db: Session
@@ -84,8 +84,7 @@ def get_recur_task(
     )
 
     if task:
-        task = schemas.RecurTaskOut(**task._asdict())
-        return task
+        return schemas.RecurTaskOut.model_validate(task)
 
     return None
 
@@ -105,8 +104,7 @@ def update_recur_task(
 
     if task:
         db.commit()
-        task = schemas.RecurTaskOut(**task._asdict())
-        return task
+        return schemas.RecurTaskOut.model_validate(task)
 
     return None
 
@@ -125,7 +123,6 @@ def delete_recur_task(
 
     if task:
         db.commit()
-        task = schemas.RecurTaskOut(**task._asdict())
-        return task
+        return schemas.RecurTaskOut.model_validate(task)
 
     return None
