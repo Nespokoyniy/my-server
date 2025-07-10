@@ -1,20 +1,22 @@
+from typing import Sequence
+from _pytest.mark.structures import ParameterSet
 from fastapi.testclient import TestClient
 import pytest
 
 
 class TestGetTasks:
-    def test_get_tasks_returns_200(self, token, create_tasks, client: TestClient):
+    def test_get_tasks_returns_200(self, token: dict[str, str], create_tasks: None, client: TestClient):
         tasks = client.get("/api/tasks", headers=token)
         assert tasks.status_code == 200
 
-    def test_get_tasks_auth_returns_401(self, create_tasks, client: TestClient):
+    def test_get_tasks_auth_returns_401(self, create_tasks: None, client: TestClient):
         resp = client.get("/api/tasks")
         assert resp.status_code == 401
 
 
 class TestCompleteUncompleteTask:
     def test_complete_uncomplete_task_returns_200(
-        self, token, create_tasks, client: TestClient
+        self, token: dict[str, str], create_tasks: None, client: TestClient
     ):
         task = client.put("/api/tasks/1/status", headers=token)
         assert task.status_code == 200
@@ -24,19 +26,19 @@ class TestCompleteUncompleteTask:
         assert task.json()["is_completed"] == False
 
     def test_complete_uncomplete_task_auth_returns_401(
-        self, create_tasks, client: TestClient
+        self, create_tasks: None, client: TestClient
     ):
         resp = client.put("/api/tasks/1/status")
         assert resp.status_code == 401
 
     def test_complete_uncomplete_task_returns_404(
-        self, token, create_tasks, client: TestClient
+        self, token: dict[str, str], create_tasks: None, client: TestClient
     ):
         resp = client.put("/api/tasks/0/status", headers=token)
         assert resp.status_code == 404
 
     def test_complete_uncomplete_task_user_doesnt_own_returns_404(
-        self, token, token_2, create_tasks, client: TestClient
+        self, token: dict[str, str], token_2: dict[str, str], create_tasks: None, client: TestClient
     ):
         resp = client.put("/api/tasks/1/status", headers=token)
         assert resp.status_code == 200
@@ -46,7 +48,7 @@ class TestCompleteUncompleteTask:
 
 
 class TestCreateTask:
-    def test_create_task_returns_201(self, token, create_tasks, client: TestClient):
+    def test_create_task_returns_201(self, token: dict[str, str], create_tasks: None, client: TestClient):
         resp = client.post(
             "/api/tasks",
             json={"name": "new task", "description": "new description", "priority": 8},
@@ -62,7 +64,7 @@ class TestCreateTask:
         ({"description": "new description", "priority": 5}),
     )
     def test_create_task_with_invalid_input_returns_422(
-        self, body, token, client: TestClient
+        self, body: dict[ParameterSet | Sequence[object] | object, str | int], token: dict[str, str], client: TestClient
     ):
         resp = client.post(
             "/api/tasks",
@@ -80,21 +82,21 @@ class TestCreateTask:
 
 
 class TestGetTask:
-    def test_get_task_returns_200(self, create_tasks, client: TestClient, token):
+    def test_get_task_returns_200(self, create_tasks: None, client: TestClient, token: dict[str, str]):
         resp = client.get("/api/tasks/1", headers=token)
         assert resp.status_code == 200
         assert resp.json()["name"] == "task 1"
 
-    def test_get_task_returns_401(self, create_tasks, client: TestClient):
+    def test_get_task_returns_401(self, create_tasks: None, client: TestClient):
         resp = client.get("/api/tasks/1")
         assert resp.status_code == 401
 
-    def test_get_task_returns_404(self, create_tasks, client: TestClient, token):
+    def test_get_task_returns_404(self, create_tasks: None, client: TestClient, token: dict[str, str]):
         resp = client.get("/api/tasks/0", headers=token)
         assert resp.status_code == 404
 
     def test_get_task_user_doesnt_own_returns_404(
-        self, token, token_2, create_tasks, client: TestClient
+        self, token: dict[str, str], token_2: dict[str, str], create_tasks: None, client: TestClient
     ):
         resp = client.get("/api/tasks/1", headers=token)
         assert resp.status_code == 200
@@ -121,7 +123,7 @@ class TestUpdateTask:
         ),
     )
     def test_update_task_returns_200(
-        self, body, create_tasks, token, client: TestClient
+        self, body: dict[str, str | int] | dict[str, str], create_tasks: None, token: dict[str, str], client: TestClient
     ):
         resp = client.put(
             "/api/tasks/1",
@@ -131,7 +133,7 @@ class TestUpdateTask:
         assert resp.status_code == 200
         assert resp.json()["name"] == "new"
 
-    def test_update_task_returns_401(self, create_tasks, client: TestClient):
+    def test_update_task_returns_401(self, create_tasks: None, client: TestClient):
         resp = client.put(
             "/api/tasks/1",
             json={
@@ -143,7 +145,7 @@ class TestUpdateTask:
         assert resp.status_code == 401
 
     def test_update_task_with_invalid_body_returns_422(
-        self, create_tasks, client: TestClient, token
+        self, create_tasks: None, client: TestClient, token: dict[str, str]
     ):
         resp = client.put(
             "/api/tasks/1",
@@ -153,12 +155,12 @@ class TestUpdateTask:
 
         assert resp.status_code == 422
 
-    def test_update_task_returns_404(self, create_tasks, client: TestClient, token):
+    def test_update_task_returns_404(self, create_tasks: None, client: TestClient, token: dict[str, str]):
         resp = client.get("/api/tasks/0", headers=token)
         assert resp.status_code == 404
 
     def test_update_task_user_doesnt_own_returns_404(
-        self, token, token_2, create_tasks, client: TestClient
+        self, token: dict[str, str], token_2: dict[str, str], create_tasks: None, client: TestClient
     ):
         resp = client.put(
             "/api/tasks/1",

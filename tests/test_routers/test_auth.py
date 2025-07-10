@@ -3,7 +3,7 @@ from fastapi.testclient import TestClient
 
 
 class TestLogin:
-    def test_login_returns_200(self, register, client: TestClient):
+    def test_login_returns_200(self, register: None, client: TestClient):
         resp = client.post(
             "/api/login",
             data={"username": "example", "password": "example123"},
@@ -15,7 +15,7 @@ class TestLogin:
         "username,password", [("false", "example123"), ("example", "false")]
     )
     def test_login_with_invalid_data_returns_400(
-        self, register, username: str, password: str, client: TestClient
+        self, register: None, username: str, password: str, client: TestClient
     ):
         resp = client.post(
             "/api/login",
@@ -32,7 +32,7 @@ class TestLogin:
         ],
     )
     def test_login_with_no_data_returns_400(
-        self, register, data: dict, client: TestClient
+        self, register: None, data: dict, client: TestClient
     ):
         resp = client.post(
             "/api/login",
@@ -57,7 +57,7 @@ class TestRegister:
             },
         ),
     )
-    def test_register_returns_201(self, body, client: TestClient):
+    def test_register_returns_201(self, body: dict[str, str], client: TestClient):
         resp = client.post("/api/register", json=body)
 
         assert resp.status_code == 201
@@ -66,7 +66,7 @@ class TestRegister:
         "body",
         ({"name": "example", "email": "example@gmail.com"}, {"password": "example123"}),
     )
-    def test_register_with_wrong_body_returns_422(self, body, client: TestClient):
+    def test_register_with_wrong_body_returns_422(self, body: dict[str, str], client: TestClient):
         resp = client.post(
             "/api/register",
             json=body,
