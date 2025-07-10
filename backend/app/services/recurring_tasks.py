@@ -15,12 +15,14 @@ TASK_FIELDS = [
     models.RecurringTask.date_created,
 ]
 
+
 def complete_uncomplete_recur_task(
     user_task_id: int, user_id: int, db: Session
 ) -> Optional[schemas.RecurTaskOut]:
     task = db.execute(
         select(models.RecurringTask).where(
-            models.RecurringTask.user_task_id == user_task_id, models.RecurringTask.owner == user_id
+            models.RecurringTask.user_task_id == user_task_id,
+            models.RecurringTask.owner == user_id,
         )
     ).scalar_one_or_none()
 
@@ -29,14 +31,17 @@ def complete_uncomplete_recur_task(
 
     resp = db.execute(
         update(models.RecurringTask)
-        .where(models.RecurringTask.user_task_id == user_task_id, models.RecurringTask.owner == user_id)
+        .where(
+            models.RecurringTask.user_task_id == user_task_id,
+            models.RecurringTask.owner == user_id,
+        )
         .returning(*TASK_FIELDS)
         .values(is_completed=not task.is_completed)
     ).first()
 
-    
     db.commit()
     return schemas.RecurTaskOut.model_validate(resp)
+
 
 def create_recur_task(
     body: schemas.RecurTaskWithOwner, db: Session
@@ -62,7 +67,9 @@ def create_recur_task(
 
 def get_recur_tasks(user_id: int, db: Session) -> list[schemas.RecurTaskOut]:
     tasks = (
-        db.execute(select(models.RecurringTask).where(models.RecurringTask.owner == user_id))
+        db.execute(
+            select(models.RecurringTask).where(models.RecurringTask.owner == user_id)
+        )
         .scalars()
         .all()
     )
@@ -96,7 +103,7 @@ def update_recur_task(
         update(models.RecurringTask)
         .where(
             models.RecurringTask.user_task_id == user_task_id,
-            models.RecurringTask.owner == body["owner"],
+            models.RecurringTask.owner == body.owner,
         )
         .returning(*TASK_FIELDS)
         .values(**body.model_dump())

@@ -24,7 +24,7 @@ def complete_uncomplete_task(
 
     if resp is None:
         raise HTTPException(404, detail="the task doesn't exist")
-    
+
     return resp
 
 
@@ -45,13 +45,13 @@ def get_tasks(db: Session = Depends(get_db), user_id: int = Depends(get_current_
     return my_tasks
 
 
-@router.get("/{task_id}", status_code=200, response_model=schemas.TaskOut)
+@router.get("/{user_task_id}", status_code=200, response_model=schemas.TaskOut)
 def get_task(
-    task_id: int,
+    user_task_id: int,
     db: Session = Depends(get_db),
     user_id: int = Depends(get_current_user),
 ):
-    task = tasks.get_task(user_id, task_id, db)
+    task = tasks.get_task(user_id, user_task_id, db)
 
     if task is None:
         raise HTTPException(404, detail="the task doesn't exist")
@@ -59,16 +59,16 @@ def get_task(
     return task
 
 
-@router.put("/{task_id}", status_code=200, response_model=schemas.TaskOut)
+@router.put("/{user_task_id}", status_code=200, response_model=schemas.TaskOut)
 def update_task(
     body: schemas.Task,
-    task_id: int,
+    user_task_id: int,
     db: Session = Depends(get_db),
     user_id: int = Depends(get_current_user),
 ):
     body = schemas.TaskWithOwner(**body.model_dump(), owner=user_id)
     updated_task = db_exc_check(
-        tasks.update_task, {"task_id": task_id, "body": body, "db": db}
+        tasks.update_task, {"user_task_id": user_task_id, "body": body, "db": db}
     )
 
     if updated_task is None:
@@ -77,14 +77,14 @@ def update_task(
     return updated_task
 
 
-@router.delete("/{task_id}", status_code=204)
+@router.delete("/{user_task_id}", status_code=204)
 def delete_task(
-    task_id: int,
+    user_task_id: int,
     db: Session = Depends(get_db),
     user_id: int = Depends(get_current_user),
 ):
     task = db_exc_check(
-        tasks.delete_task, {"user_id": user_id, "task_id": task_id, "db": db}
+        tasks.delete_task, {"user_id": user_id, "user_task_id": user_task_id, "db": db}
     )
 
     if task is None:

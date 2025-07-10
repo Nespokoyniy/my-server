@@ -93,7 +93,7 @@ def update_task(
         update(models.Task)
         .where(
             models.Task.user_task_id == user_task_id,
-            models.Task.owner == body["owner"],
+            models.Task.owner == body.owner,
         )
         .returning(*TASK_FIELDS)
         .values(**body.model_dump())
@@ -101,8 +101,7 @@ def update_task(
 
     if task:
         db.commit()
-        task = schemas.TaskOut(**task._asdict())
-        return task
+        return schemas.TaskOut.model_validate(task)
 
     return None
 

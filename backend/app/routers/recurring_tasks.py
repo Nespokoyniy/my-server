@@ -10,7 +10,9 @@ from ..utils.dependencies import get_current_user
 router = APIRouter(prefix="/api/recur-tasks", tags=["Recur-tasks", "API"])
 
 
-@router.put("/{user_task_id}/status", status_code=200, response_model=schemas.RecurTaskOut)
+@router.put(
+    "/{user_task_id}/status", status_code=200, response_model=schemas.RecurTaskOut
+)
 def complete_uncomplete_recur_task(
     user_task_id: int,
     db: Session = Depends(get_db),

@@ -39,7 +39,9 @@ class TestCompleteUncompleteTask:
         self, token, token_2, create_tasks, client: TestClient
     ):
         resp = client.put("/api/tasks/1/status", headers=token)
+        assert resp.status_code == 200
         resp_2 = client.put("/api/tasks/1/status", headers=token_2)
+        assert resp_2.status_code == 200
         assert resp.status_code != resp_2
 
 
@@ -94,6 +96,80 @@ class TestGetTask:
     def test_get_task_user_doesnt_own_returns_404(
         self, token, token_2, create_tasks, client: TestClient
     ):
-        resp = client.put("/api/tasks/1", headers=token)
-        resp_2 = client.put("/api/tasks/1", headers=token_2)
+        resp = client.get("/api/tasks/1", headers=token)
+        assert resp.status_code == 200
+        resp_2 = client.get("/api/tasks/1", headers=token_2)
+        assert resp_2.status_code == 200
         assert resp.status_code != resp_2
+
+
+class TestUpdateTask:
+    @pytest.mark.parametrize(
+        "body",
+        (
+            {
+                "name": "new",
+                "description": "new desc",
+                "priority": 4,
+            },
+            {"name": "new", "description": "new desc"},
+            {
+                "name": "new",
+                "priority": 4,
+            },
+            {"name": "new"},
+        ),
+    )
+    def test_update_task_returns_200(
+        self, body, create_tasks, token, client: TestClient
+    ):
+        resp = client.put(
+            "/api/tasks/1",
+            json=body,
+            headers=token,
+        )
+        assert resp.status_code == 200
+        assert resp.json()["name"] == "new"
+
+    def test_update_task_returns_401(self, create_tasks, client: TestClient):
+        resp = client.put(
+            "/api/tasks/1",
+            json={
+                "name": "new",
+                "description": "new desc",
+                "priority": 4,
+            },
+        )
+        assert resp.status_code == 401
+
+    def test_update_task_with_invalid_body_returns_422(
+        self, create_tasks, client: TestClient, token
+    ):
+        resp = client.put(
+            "/api/tasks/1",
+            json={"description": "new desc", "priority": 4},
+            headers=token,
+        )
+
+        assert resp.status_code == 422
+
+    def test_update_task_returns_404(self, create_tasks, client: TestClient, token):
+        resp = client.get("/api/tasks/0", headers=token)
+        assert resp.status_code == 404
+
+    def test_update_task_user_doesnt_own_returns_404(
+        self, token, token_2, create_tasks, client: TestClient
+    ):
+        resp = client.put(
+            "/api/tasks/1",
+            json={"name": "new", "description": "new desc"},
+            headers=token,
+        )
+        assert resp.status_code == 200
+        resp_2 = client.get("/api/tasks/1", headers=token_2)
+        assert resp_2.status_code == 200
+        assert resp.status_code != resp_2
+
+
+class TestDeleteTask:
+    pass
