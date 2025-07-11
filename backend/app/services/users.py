@@ -1,5 +1,6 @@
 from typing import Optional
 from fastapi.security import OAuth2PasswordRequestForm
+# from backend.app.utils.dependencies import send_code
 from ..utils.hash import verify_pwd
 from sqlalchemy.orm import Session
 from ..database import models
@@ -12,7 +13,7 @@ USER_FIELDS = [
     models.User.id,
     models.User.email,
     models.User.name,
-    models.User.date_created,
+    models.User.created_at,
 ]
 
 USER_FIELDS_AND_PWD = USER_FIELDS.copy() + [models.User.password]
@@ -29,7 +30,7 @@ def create_user(body: schemas.User, db: Session) -> schemas.UserOut:
     if user:
         raise HTTPException(400, detail="Username is already in use")
 
-    body["date_created"] = datetime.datetime.now(datetime.timezone.utc)
+    body["created_at"] = datetime.datetime.now(datetime.timezone.utc)
     user = models.User(**body)
     db.add(user)
     db.commit()
@@ -40,7 +41,8 @@ def create_user(body: schemas.User, db: Session) -> schemas.UserOut:
 def get_user(user_id: int, db: Session) -> Optional[schemas.UserOut]:
     user = (
         db.execute(select(*USER_FIELDS).where(models.User.id == user_id))
-        .mappings().first()
+        .mappings()
+        .first()
     )
 
     if user:
@@ -63,6 +65,19 @@ def get_user_by_form(
         return None
 
     return user
+
+
+# def get_user_by_email_form(
+#     form: OAuth2PasswordRequestForm, db: Session
+# ) -> Optional[schemas.UserOut]:
+#     user = db.execute(
+#         select(*USER_FIELDS_AND_PWD).where(models.User.email == form.username)
+#     ).first()
+    
+#     if not user:
+#         return None
+
+#     code = send_code()
 
 
 def update_user(user_id: int, body, db: Session) -> Optional[schemas.UserOut]:

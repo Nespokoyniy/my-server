@@ -1,4 +1,3 @@
-from fastapi import Response
 from ..database import models
 from sqlalchemy import delete, select, update
 from typing import Optional
@@ -41,7 +40,7 @@ def complete_uncomplete_task(
 
 def create_task(body: schemas.TaskWithOwner, db: Session) -> schemas.TaskOut:
     body = body.model_dump()
-    body["date_created"] = datetime.datetime.now(datetime.timezone.utc)
+    body["created_at"] = datetime.datetime.now(datetime.timezone.utc)
 
     # Get the last task for this user
     last_task = db.execute(

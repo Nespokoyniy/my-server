@@ -3,11 +3,11 @@ from pydantic import ValidationError
 from ..config import settings as ss
 from jose import JWTError, jwt
 from datetime import datetime, timedelta, timezone
-from ..validation.schemas import Payload
-from fastapi import Depends, HTTPException
+from ..validation.schemas import Payload, TokenResp
+from fastapi import Depends, HTTPException, status
 from ..database.database import get_db
 from sqlalchemy.orm import Session
-from sqlalchemy import exists, select
+from sqlalchemy import exists, select, delete
 from ..database import models
 
 SECRET_KEY = ss.SECRET_KEY
@@ -76,13 +76,87 @@ def verify_token(token: str = Depends(oauth2_scheme)):
     return user_id
 
 
-def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
+def get_current_user(
+    token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)
+):
     user_id = verify_token(token)
     user_exists = db.execute(select(exists().where(models.User.id == user_id))).scalar()
-    
+
     if user_exists:
         return user_id
-    
+
     raise HTTPException(
-                401, detail="Token expired", headers={"WWW-Authenticate": "Bearer"}
+        401, detail="Token expired", headers={"WWW-Authenticate": "Bearer"}
+    )
+
+
+def create_token_pair(user_id: int) -> TokenResp:
+    access_token = create_token(user_id)
+    refresh_token = create_refresh_token(user_id)
+    return TokenResp(access_token=access_token, refresh_token=refresh_token)
+
+
+def verify_refresh_token(token: str, db: Session):
+    try:
+        payload = jwt.decode(
+            token, key=REFRESH_SECRET_KEY, algorithms=REFRESH_ALGORITHM
+        )
+        token_data = Payload(**payload)
+        user_id = int(token_data.sub)
+
+        if datetime.fromtimestamp(token_data.exp) < datetime.now():
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Refresh token expired",
+                headers={"WWW-Authenticate": "Bearer"},
             )
+
+        token_exists = db.execute(
+            select(exists().where(models.RefreshToken.token == token))
+        ).scalar()
+
+        if not token_exists:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid refresh token",
+            )
+
+        return user_id
+
+    except (JWTError, ValidationError):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Could not validate credentials",
+        )
+
+
+async def refresh_access_token(refresh_token: str, db: Session = Depends(get_db)):
+    user_id = verify_refresh_token(refresh_token, db)
+
+    new_access_token = create_token(user_id)
+    new_refresh_token = create_refresh_token(user_id)
+
+    db.execute(
+        delete(models.RefreshToken).where(models.RefreshToken.token == refresh_token)
+    )
+
+    db.add(
+        models.RefreshToken(
+            token=new_refresh_token,
+            user_id=user_id,
+            expires_at=datetime.fromtimestamp(
+                jwt.decode(
+                    new_refresh_token,
+                    REFRESH_SECRET_KEY,
+                    algorithms=[REFRESH_ALGORITHM],
+                )["exp"]
+            ),
+        )
+    )
+    db.commit()
+
+    return TokenResp(access_token=new_access_token, refresh_token=new_refresh_token)
+
+
+# def send_code():
+#     pass

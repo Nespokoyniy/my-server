@@ -1,4 +1,3 @@
-from fastapi import Response
 from ..database import models
 from sqlalchemy import delete, select, update
 from sqlalchemy.orm import Session
@@ -48,7 +47,7 @@ def create_recur_task(
     body: schemas.RecurTaskWithOwner, db: Session
 ) -> schemas.RecurTaskOut:
     body = body.model_dump()
-    body["date_created"] = datetime.datetime.now(datetime.timezone.utc)
+    body["created_at"] = datetime.datetime.now(datetime.timezone.utc)
     last_task = db.execute(
         select(models.RecurringTask.user_task_id)
         .where(models.RecurringTask.owner == body["owner"])
