@@ -1,3 +1,4 @@
+from fastapi import Response
 from ..database import models
 from sqlalchemy import delete, select, update
 from sqlalchemy.orm import Session
@@ -73,7 +74,7 @@ def get_recur_tasks(user_id: int, db: Session) -> list[schemas.RecurTaskOut]:
         .scalars()
         .all()
     )
-    return [schemas.TaskOut.model_validate(task) for task in tasks]
+    return [schemas.RecurTaskOut.model_validate(task) for task in tasks]
 
 
 def get_recur_task(
@@ -86,7 +87,7 @@ def get_recur_task(
                 models.RecurringTask.owner == user_id,
             )
         )
-        .scalars()
+        .mappings()
         .first()
     )
 
@@ -119,17 +120,21 @@ def update_recur_task(
 def delete_recur_task(
     user_id: int, user_task_id: int, db: Session
 ) -> Optional[schemas.RecurTaskOut]:
-    task = db.execute(
-        delete(models.RecurringTask)
-        .where(
-            models.RecurringTask.user_task_id == user_task_id,
-            models.RecurringTask.owner == user_id,
+    task_id = (
+        db.execute(
+            delete(models.RecurringTask)
+            .where(
+                models.RecurringTask.user_task_id == user_task_id,
+                models.RecurringTask.owner == user_id,
+            )
+            .returning(models.RecurringTask.user_task_id)
         )
-        .returning(models.RecurringTask.id)
-    ).first()
+        .scalars()
+        .first()
+    )
 
-    if task:
+    if task_id:
         db.commit()
-        return schemas.RecurTaskOut.model_validate(task)
+        return task_id
 
     return None

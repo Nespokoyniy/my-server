@@ -40,8 +40,7 @@ def create_user(body: schemas.User, db: Session) -> schemas.UserOut:
 def get_user(user_id: int, db: Session) -> Optional[schemas.UserOut]:
     user = (
         db.execute(select(*USER_FIELDS).where(models.User.id == user_id))
-        .scalars()
-        .first()
+        .mappings().first()
     )
 
     if user:

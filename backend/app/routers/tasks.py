@@ -1,4 +1,4 @@
-from fastapi import Depends, HTTPException
+from fastapi import Depends, HTTPException, Response
 from fastapi.routing import APIRouter
 from ..database.database import get_db
 from sqlalchemy.orm import Session
@@ -89,3 +89,5 @@ def delete_task(
 
     if task is None:
         raise HTTPException(404, detail="the task doesn't exist")
+
+    return Response(status_code=204)

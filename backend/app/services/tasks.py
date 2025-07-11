@@ -1,3 +1,4 @@
+from fastapi import Response
 from ..database import models
 from sqlalchemy import delete, select, update
 from typing import Optional
@@ -113,7 +114,7 @@ def delete_task(user_id: int, user_task_id: int, db: Session) -> int:
             .where(
                 models.Task.user_task_id == user_task_id, models.Task.owner == user_id
             )
-            .returning(models.Task.id)
+            .returning(models.Task.user_task_id)
         )
         .scalars()
         .first()

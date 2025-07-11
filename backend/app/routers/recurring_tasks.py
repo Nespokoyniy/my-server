@@ -1,4 +1,4 @@
-from fastapi import Depends, HTTPException
+from fastapi import Depends, HTTPException, Response
 from fastapi.routing import APIRouter
 from ..validation import schemas
 from ..database.database import get_db
@@ -22,6 +22,9 @@ def complete_uncomplete_recur_task(
         rt.complete_uncomplete_recur_task,
         {"db": db, "user_task_id": user_task_id, "user_id": user_id},
     )
+
+    if resp is None:
+        raise HTTPException(404, detail="the recurring task doesn't exist")
     return resp
 
 
@@ -66,14 +69,14 @@ def update_recur_task(
     user_id: int = Depends(get_current_user),
 ):
     body = schemas.RecurTaskWithOwner(**body.model_dump(), owner=user_id)
-    task = db_exc_check(
+    resp = db_exc_check(
         rt.update_recur_task, {"body": body, "db": db, "user_task_id": user_task_id}
     )
 
-    if task is None:
+    if resp is None:
         raise HTTPException(404, detail="the recurring task doesn't exist")
 
-    return task
+    return resp
 
 
 @router.delete("/{user_task_id}", status_code=204)
@@ -82,10 +85,12 @@ def delete_recur_task(
     db: Session = Depends(get_db),
     user_id: int = Depends(get_current_user),
 ):
-    task = db_exc_check(
+    resp = db_exc_check(
         rt.delete_recur_task,
         {"user_id": user_id, "user_task_id": user_task_id, "db": db},
     )
 
-    if task is None:
+    if resp is None:
         raise HTTPException(404, detail="the recurring task doesn't exist")
+
+    return Response(status_code=204)

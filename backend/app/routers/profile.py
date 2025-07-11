@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Response
 from ..validation import schemas
 from ..database.database import get_db
 from sqlalchemy.orm import Session
@@ -14,6 +14,7 @@ def delete_profile(
     user_id: int = Depends(get_current_user), db: Session = Depends(get_db)
 ):
     db_exc_check(users.delete_user, {"user_id": user_id, "db": db})
+    return Response(status_code=204)
 
 
 @router.put("/", status_code=200, response_model=schemas.UserOut)
@@ -33,6 +34,6 @@ def update_profile(
 def get_profile(
     db: Session = Depends(get_db), user_id: int = Depends(get_current_user)
 ):
-    user = users.get_user({"user_id": user_id, "db": db})
+    user = users.get_user(user_id, db)
 
     return user

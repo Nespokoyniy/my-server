@@ -9,6 +9,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, Session
 from backend.app.config import settings as ss
 from backend.app.services.auth import login
+from backend.app.services.recurring_tasks import create_recur_task
 from backend.app.services.tasks import create_task
 from backend.app.utils.dependencies import get_current_user
 from backend.app.utils.hash import hash_pwd
@@ -104,6 +105,37 @@ def create_tasks(token_2, token, test_db):
                 name=f"task {num}",
                 description=f"desc {num}",
                 priority=num,
+                owner=user_id_2,
+            ),
+            test_db,
+        )
+    test_db.commit()
+    yield
+
+
+@pytest.fixture
+def create_recur_tasks(token_2, token, test_db):
+    weekdays = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"]
+    user_id = get_current_user(token["Authorization"].split()[1], test_db)
+    user_id_2 = get_current_user(token_2["Authorization"].split()[1], test_db)
+    for num in range(1, 4):
+        create_recur_task(
+            schemas.RecurTaskWithOwner(
+                name=f"task {num}",
+                description=f"desc {num}",
+                priority=num,
+                days=weekdays[num - 1 : num + 2],
+                owner=user_id,
+            ),
+            test_db,
+        )
+    for num in range(1, 4):
+        create_recur_task(
+            schemas.RecurTaskWithOwner(
+                name=f"task {num}",
+                description=f"desc {num}",
+                priority=num,
+                days=weekdays[num - 1 : num + 2],
                 owner=user_id_2,
             ),
             test_db,
