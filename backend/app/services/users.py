@@ -1,6 +1,7 @@
 from typing import Optional
 from fastapi.security import OAuth2PasswordRequestForm
-# from backend.app.utils.dependencies import send_code
+
+# from ..utils.dependencies import send_code
 from ..utils.hash import verify_pwd
 from sqlalchemy.orm import Session
 from ..database import models
@@ -23,7 +24,7 @@ def create_user(body: schemas.User, db: Session) -> schemas.UserOut:
     body = body.model_dump()
     user = (
         db.execute(select(*USER_FIELDS).where(models.User.name == body["name"]))
-        .scalars()
+        .mappings()
         .first()
     )
 
@@ -53,13 +54,19 @@ def get_user(user_id: int, db: Session) -> Optional[schemas.UserOut]:
 
 def get_user_by_form(
     form: OAuth2PasswordRequestForm, db: Session
-) -> Optional[schemas.UserOut]:
-    user = db.execute(
-        select(*USER_FIELDS_AND_PWD).where(models.User.name == form.username)
-    ).first()
+) -> Optional[schemas.UserOutByForm]:
+    user = (
+        db.execute(
+            select(*USER_FIELDS_AND_PWD).where(models.User.name == form.username)
+        )
+        .mappings()
+        .first()
+    )
 
     if not user:
         return None
+
+    user = schemas.UserOutByForm.model_validate(user)
 
     if not verify_pwd(form.password, user.password):
         return None
@@ -73,7 +80,7 @@ def get_user_by_form(
 #     user = db.execute(
 #         select(*USER_FIELDS_AND_PWD).where(models.User.email == form.username)
 #     ).first()
-    
+
 #     if not user:
 #         return None
 
@@ -81,12 +88,16 @@ def get_user_by_form(
 
 
 def update_user(user_id: int, body, db: Session) -> Optional[schemas.UserOut]:
-    user = db.execute(
-        update(models.User)
-        .where(models.User.id == user_id)
-        .returning(*USER_FIELDS)
-        .values(**body.model_dump())
-    ).first()
+    user = (
+        db.execute(
+            update(models.User)
+            .where(models.User.id == user_id)
+            .returning(*USER_FIELDS)
+            .values(**body.model_dump())
+        )
+        .mappings()
+        .first()
+    )
 
     if user:
         db.commit()
@@ -96,6 +107,14 @@ def update_user(user_id: int, body, db: Session) -> Optional[schemas.UserOut]:
 
 
 def delete_user(user_id: int, db: Session) -> int:
+    db.execute(delete(models.RefreshToken).where(models.RefreshToken.owner == user_id))
+    db.commit()
+
+    db.execute(
+        delete(models.RecurringTask).where(models.RecurringTask.owner == user_id)
+    )
+    db.execute(delete(models.Task).where(models.Task.owner == user_id))
+
     user_id = (
         db.execute(
             delete(models.User)
@@ -106,7 +125,5 @@ def delete_user(user_id: int, db: Session) -> int:
         .first()
     )
 
-    if user_id:
-        db.commit()
-        return user_id
-    return None
+    db.commit()
+    return user_id

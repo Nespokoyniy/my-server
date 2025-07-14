@@ -4,6 +4,7 @@ from sqlalchemy import select
 import pytest
 from typing import Any
 from backend.app.database import models
+from backend.app.utils.dependencies import get_current_user
 
 
 class TestGetProfile:
@@ -20,12 +21,30 @@ class TestDeleteProfile:
     def test_delete_profile_returns_204(
         self, client: TestClient, token: dict[str, str], test_db: Session
     ):
+        user_id = get_current_user(token["Authorization"].split()[1], test_db)
+        assert (
+            test_db.execute(
+                select(models.User).where(models.User.id == user_id)
+            ).scalar_one_or_none()
+            is not None
+        )
+
         resp = client.delete("/api/profile", headers=token)
         assert resp.status_code == 204
-        resp = test_db.execute(
-            select(models.User).where(models.User.name == "example")
-        ).first()
-        assert resp is None
+
+        assert (
+            test_db.execute(
+                select(models.User).where(models.User.id == user_id)
+            ).scalar_one_or_none()
+            is None
+        )
+
+        assert (
+            test_db.execute(
+                select(models.RefreshToken).where(models.RefreshToken.owner == user_id)
+            ).scalar_one_or_none()
+            is None
+        )
 
     def test_delete_profile_returns_401(self, client: TestClient):
         resp = client.delete("/api/profile")

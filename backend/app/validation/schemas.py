@@ -17,7 +17,7 @@ class Task(MainModel):
 class TaskOut(Task):
     user_task_id: int
     is_completed: bool
-    date_created: datetime
+    created_at: datetime
 
 
 class RecurTask(Task):
@@ -27,7 +27,7 @@ class RecurTask(Task):
 class RecurTaskOut(RecurTask):
     user_task_id: int
     is_completed: bool
-    date_created: datetime
+    created_at: datetime
 
 
 class TaskWithOwner(Task):
@@ -47,7 +47,15 @@ class User(MainModel):
 class UserOut(MainModel):
     name: str
     email: Optional[EmailStr] = None
-    date_created: datetime
+    created_at: datetime
+
+
+class UserOutByForm(MainModel):
+    id: int
+    password: str
+    email: EmailStr
+    name: str
+    created_at: datetime
 
 
 class Payload(MainModel):

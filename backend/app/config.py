@@ -1,5 +1,6 @@
 from pydantic_settings import BaseSettings
 
+
 class Settings(BaseSettings):
     DB_URL: str
     SECRET_KEY: str
@@ -8,5 +9,6 @@ class Settings(BaseSettings):
     TOKEN_EXPIRE_MINUTES: int
     REFRESH_TOKEN_EXPIRE_MINUTES: int
     REFRESH_ALGORITHM: str
+
 
 settings = Settings()

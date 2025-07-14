@@ -1,6 +1,8 @@
-from fastapi import APIRouter, Depends, Response
+from fastapi import APIRouter, Depends, Response, HTTPException
 from ..validation import schemas
 from ..database.database import get_db
+from ..database import models
+from sqlalchemy import delete
 from sqlalchemy.orm import Session
 from ..utils.exc import db_exc_check
 from ..services import users
@@ -13,7 +15,14 @@ router = APIRouter(prefix="/api/profile", tags=["Profile", "API"])
 def delete_profile(
     user_id: int = Depends(get_current_user), db: Session = Depends(get_db)
 ):
-    db_exc_check(users.delete_user, {"user_id": user_id, "db": db})
+    db.execute(delete(models.RefreshToken).where(models.RefreshToken.owner == user_id))
+    db.commit()
+
+    deleted = db_exc_check(users.delete_user, {"user_id": user_id, "db": db})
+
+    if not deleted:
+        raise HTTPException(status_code=404, detail="User not found")
+
     return Response(status_code=204)
 
 

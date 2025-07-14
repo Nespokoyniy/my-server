@@ -2,7 +2,7 @@ FROM python:3.13.5-slim-bookworm
 
 LABEL owner="r0maf"
 
-WORKDIR /app
+WORKDIR /test
 
 RUN apt-get update && apt-get install -y libpq-dev gcc && rm -rf /var/lib/apt/lists/*
 
@@ -12,8 +12,8 @@ COPY pytest.ini .
 
 RUN pip install --upgrade pip && pip install -r requirements.txt
 
-COPY backend /app/backend
+COPY backend backend
 
-COPY tests /app/tests
+COPY tests tests
 
 CMD ["pytest"]

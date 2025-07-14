@@ -12,7 +12,7 @@ TASK_FIELDS = [
     models.RecurringTask.priority,
     models.RecurringTask.days,
     models.RecurringTask.is_completed,
-    models.RecurringTask.date_created,
+    models.RecurringTask.created_at,
 ]
 
 
@@ -37,7 +37,7 @@ def complete_uncomplete_recur_task(
         )
         .returning(*TASK_FIELDS)
         .values(is_completed=not task.is_completed)
-    ).first()
+    ).mappings().first()
 
     db.commit()
     return schemas.RecurTaskOut.model_validate(resp)
@@ -107,7 +107,7 @@ def update_recur_task(
         )
         .returning(*TASK_FIELDS)
         .values(**body.model_dump())
-    ).first()
+    ).mappings().first()
 
     if task:
         db.commit()

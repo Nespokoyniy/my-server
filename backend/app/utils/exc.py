@@ -1,9 +1,10 @@
+from typing import Any, Callable
 from psycopg2 import IntegrityError
 from sqlalchemy.exc import SQLAlchemyError
 from fastapi import HTTPException
 
 
-def db_exc_check(func, args: dict):
+def db_exc_check(func: Callable, args: dict) -> Any:
     try:
         db = args["db"]
         resp = func(**args)

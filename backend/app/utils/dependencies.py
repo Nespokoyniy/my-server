@@ -90,9 +90,9 @@ def get_current_user(
     )
 
 
-def create_token_pair(user_id: int) -> TokenResp:
-    access_token = create_token(user_id)
-    refresh_token = create_refresh_token(user_id)
+def create_token_pair(subject_id: int) -> TokenResp:
+    access_token = create_token(subject_id)
+    refresh_token = create_refresh_token(subject_id)
     return TokenResp(access_token=access_token, refresh_token=refresh_token)
 
 
@@ -130,7 +130,7 @@ def verify_refresh_token(token: str, db: Session):
         )
 
 
-async def refresh_access_token(refresh_token: str, db: Session = Depends(get_db)):
+def refresh_access_token(refresh_token: str, db: Session = Depends(get_db)):
     user_id = verify_refresh_token(refresh_token, db)
 
     new_access_token = create_token(user_id)

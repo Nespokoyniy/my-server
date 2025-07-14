@@ -11,7 +11,7 @@ TASK_FIELDS = [
     models.Task.description,
     models.Task.priority,
     models.Task.is_completed,
-    models.Task.date_created,
+    models.Task.created_at,
 ]
 
 
@@ -32,7 +32,7 @@ def complete_uncomplete_task(
         .where(models.Task.user_task_id == user_task_id, models.Task.owner == user_id)
         .returning(*TASK_FIELDS)
         .values(is_completed=not task.is_completed)
-    ).first()
+    ).mappings().first()
 
     db.commit()
     return schemas.TaskOut.model_validate(resp)
@@ -97,7 +97,7 @@ def update_task(
         )
         .returning(*TASK_FIELDS)
         .values(**body.model_dump())
-    ).first()
+    ).mappings().first()
 
     if task:
         db.commit()

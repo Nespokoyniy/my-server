@@ -1,6 +1,6 @@
 from fastapi.security import OAuth2PasswordRequestForm
 import pytest
-from sqlalchemy import delete
+from sqlalchemy import delete, select
 from fastapi.testclient import TestClient
 from backend.app.database import models
 from backend.app.database.database import get_db
@@ -24,9 +24,11 @@ def test_db():
     try:
         yield test_db
     finally:
+        test_db.rollback()
+        test_db.execute(delete(models.RefreshToken))
         test_db.execute(delete(models.Task))
-        test_db.execute(delete(models.User))
         test_db.execute(delete(models.RecurringTask))
+        test_db.execute(delete(models.User))
         test_db.commit()
         test_db.close()
         engine.dispose()
@@ -42,38 +44,134 @@ def client(test_db):
 
 @pytest.fixture
 def register(test_db: Session):
+    test_db.execute(
+        delete(models.RefreshToken).where(
+            models.RefreshToken.owner.in_(
+                select(models.User.id).where(models.User.name == "example")
+            )
+        )
+    )
+    test_db.execute(
+        delete(models.RecurringTask).where(
+            models.RecurringTask.owner.in_(
+                select(models.User.id).where(models.User.name == "example")
+            )
+        )
+    )
+    test_db.execute(
+        delete(models.Task).where(
+            models.Task.owner.in_(
+                select(models.User.id).where(models.User.name == "example")
+            )
+        )
+    )
     test_db.execute(delete(models.User).where(models.User.name == "example"))
     test_db.commit()
 
-    user = models.User(
-        name="example",
-        email="example@gmail.com",
-        password=hash_pwd("example123"),
-    )
-    test_db.add(user)
-    test_db.commit()
+    try:
+        user = models.User(
+            name="example",
+            email="example@gmail.com",
+            password=hash_pwd("example123"),
+        )
+        test_db.add(user)
+        test_db.commit()
+        yield
+    finally:
+        test_db.rollback()
+        test_db.execute(
+            delete(models.RefreshToken).where(
+                models.RefreshToken.owner.in_(
+                    select(models.User.id).where(models.User.name == "example")
+                )
+            )
+        )
+        test_db.execute(
+            delete(models.RecurringTask).where(
+                models.RecurringTask.owner.in_(
+                    select(models.User.id).where(models.User.name == "example")
+                )
+            )
+        )
+        test_db.execute(
+            delete(models.Task).where(
+                models.Task.owner.in_(
+                    select(models.User.id).where(models.User.name == "example")
+                )
+            )
+        )
+        test_db.execute(delete(models.User).where(models.User.name == "example"))
+        test_db.commit()
 
 
 @pytest.fixture
 def token(register, test_db: Session):
-    token = login(
+    token: schemas.TokenResp = login(
         OAuth2PasswordRequestForm(username="example", password="example123"), test_db
     )
-    return {"Authorization": f"Bearer {token['access_token']}"}
+    return {"Authorization": f"Bearer {token.access_token}"}
 
 
 @pytest.fixture
 def register_2(test_db: Session):
+    test_db.execute(
+        delete(models.RefreshToken).where(
+            models.RefreshToken.owner.in_(
+                select(models.User.id).where(models.User.name == "example_2")
+            )
+        )
+    )
+    test_db.execute(
+        delete(models.RecurringTask).where(
+            models.RecurringTask.owner.in_(
+                select(models.User.id).where(models.User.name == "example_2")
+            )
+        )
+    )
+    test_db.execute(
+        delete(models.Task).where(
+            models.Task.owner.in_(
+                select(models.User.id).where(models.User.name == "example_2")
+            )
+        )
+    )
     test_db.execute(delete(models.User).where(models.User.name == "example_2"))
     test_db.commit()
 
-    user = models.User(
-        name="example_2",
-        email="example_2@gmail.com",
-        password=hash_pwd("example_2123"),
-    )
-    test_db.add(user)
-    test_db.commit()
+    try:
+        user = models.User(
+            name="example_2",
+            email="example_2@gmail.com",
+            password=hash_pwd("example_2123"),
+        )
+        test_db.add(user)
+        test_db.commit()
+        yield
+    finally:
+        test_db.rollback()
+        test_db.execute(
+            delete(models.RefreshToken).where(
+                models.RefreshToken.owner.in_(
+                    select(models.User.id).where(models.User.name == "example_2")
+                )
+            )
+        )
+        test_db.execute(
+            delete(models.RecurringTask).where(
+                models.RecurringTask.owner.in_(
+                    select(models.User.id).where(models.User.name == "example_2")
+                )
+            )
+        )
+        test_db.execute(
+            delete(models.Task).where(
+                models.Task.owner.in_(
+                    select(models.User.id).where(models.User.name == "example_2")
+                )
+            )
+        )
+        test_db.execute(delete(models.User).where(models.User.name == "example_2"))
+        test_db.commit()
 
 
 @pytest.fixture
@@ -82,7 +180,7 @@ def token_2(register_2, test_db: Session):
         OAuth2PasswordRequestForm(username="example_2", password="example_2123"),
         test_db,
     )
-    return {"Authorization": f"Bearer {token['access_token']}"}
+    return {"Authorization": f"Bearer {token.access_token}"}
 
 
 @pytest.fixture
