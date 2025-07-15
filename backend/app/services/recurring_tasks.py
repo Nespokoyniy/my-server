@@ -120,9 +120,7 @@ def update_recur_task(
         return None
 
     body = body.model_dump()
-    for key, value in body.items():
-        if value is None:
-            del body[key]
+    body = {key: value for key, value in body.items() if value is not None}
         
     
     task = (
@@ -130,7 +128,7 @@ def update_recur_task(
             update(models.RecurringTask)
             .where(
                 models.RecurringTask.user_task_id == user_task_id,
-                models.RecurringTask.owner == body.owner,
+                models.RecurringTask.owner == body["owner"],
             )
             .returning(*TASK_FIELDS)
             .values(**body)

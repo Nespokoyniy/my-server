@@ -112,19 +112,17 @@ def update_task(
     ).scalar_one_or_none()
 
     body = body.model_dump()
-    for key, value in body.items():
-        if value is None:
-            del body[key]
+    body = {key: value for key, value in body.items() if value is not None}
 
     task = (
         db.execute(
             update(models.Task)
             .where(
                 models.Task.user_task_id == user_task_id,
-                models.Task.owner == body.owner,
+                models.Task.owner == body["owner"],
             )
             .returning(*TASK_FIELDS)
-            .values(**body.model_dump())
+            .values(**body)
         )
         .mappings()
         .first()

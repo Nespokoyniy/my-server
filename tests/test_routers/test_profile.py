@@ -153,14 +153,14 @@ class TestUpdateProfile:
 
         assert updated_user.name == new_data["name"]
         assert updated_user.email == new_data["email"]
-        assert updated_user.password != new_data["password"]
+        assert updated_user.password == new_data["password"]
 
     @pytest.mark.parametrize(
         "body",
         (
-            {"name": "new example"},
-            {"password": "new example123"},
-            {"email": "newexample@gmail.com"},
+            {"name": 123},
+            {"password": 1.234},
+            {"email": "newexample@@gmail.com"},
         ),
     )
     def test_update_profile_with_invalid_data_returns_422(

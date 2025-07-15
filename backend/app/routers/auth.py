@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, Response, Cookie
-from ..utils.dependencies import refresh_access_token
+from ..utils.dependencies import refresh_access_token, get_current_user
 from ..validation import schemas
 from ..services import auth
 from sqlalchemy.orm import Session
@@ -23,7 +23,11 @@ def login(form: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get
 
 
 @router.delete("/logout", status_code=204)
-def logout(refresh_token: str = Cookie(None), db: Session = Depends(get_db)):
+def logout(
+    refresh_token: str = Cookie(None),
+    db: Session = Depends(get_db),
+    user_id: int = Depends(get_current_user),
+):
     if not refresh_token:
         raise HTTPException(400, detail="Refresh token missing")
 
@@ -37,7 +41,9 @@ def logout(refresh_token: str = Cookie(None), db: Session = Depends(get_db)):
 
 @router.post("/refresh", status_code=200, response_model=schemas.TokenResp)
 def refresh_token_pair(
-    refresh_token: str = Cookie(None), db: Session = Depends(get_db)
+    refresh_token: str = Cookie(None),
+    db: Session = Depends(get_db),
+    user_id: int = Depends(get_current_user),
 ):
     if not refresh_token:
         raise HTTPException(400, detail="Refresh token missing")

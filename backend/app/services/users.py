@@ -77,16 +77,14 @@ def get_user_by_form(
 def update_user(user_id: int, body: schemas.UserUpdate, db: Session) -> Optional[schemas.UserOut]:
     
     body = body.model_dump()
-    for key, value in body.items():
-        if value is None:
-            del body[key]
+    body = {key: value for key, value in body.items() if value is not None}
     
     user = (
         db.execute(
             update(models.User)
             .where(models.User.id == user_id)
             .returning(*USER_FIELDS)
-            .values(**body.model_dump())
+            .values(**body)
         )
         .mappings()
         .first()

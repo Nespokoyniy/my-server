@@ -38,12 +38,6 @@ class TaskUpdate(MainModel):
 class RecurTaskUpdate(TaskUpdate):
     days: Optional[list[Weekdays]] = None
 
-    @field_validator("days")
-    def check_days_not_empty(cls, v):
-        if not v:
-            raise ValueError("Days list cannot be empty")
-        return v
-
 class RecurTaskOut(RecurTask):
     user_task_id: int
     is_completed: bool

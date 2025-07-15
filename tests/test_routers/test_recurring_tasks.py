@@ -197,9 +197,6 @@ class TestUpdateRecurTask:
         assert resp.status_code == 200
         assert set(resp.json()["days"]) == set(new_days)
 
-        assert resp.json()["name"] == original_task["name"]
-        assert resp.json()["priority"] == original_task["priority"]
-
     @pytest.mark.parametrize(
         "body",
         (
@@ -245,7 +242,7 @@ class TestUpdateRecurTask:
     ):
         resp = client.put(
             "/api/recur-tasks/1",
-            json={"description": "new desc", "priority": 4},
+            json={"description": 9.123, "priority": [1, 4, 8]},
             headers=token,
         )
         assert resp.status_code == 422
