@@ -67,3 +67,7 @@ class TestRegister:
     ):
         resp = client.post("/api/register", json=body)
         assert resp.status_code == 422
+
+# class TestLogout:
+#     def test_logout_returns_204(client: TestClient, token):
+#         resp = client.delete()

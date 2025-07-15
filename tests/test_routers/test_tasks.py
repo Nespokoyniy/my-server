@@ -46,11 +46,18 @@ class TestCompleteUncompleteTask:
         create_tasks: None,
         client: TestClient,
     ):
-        resp = client.put("/api/tasks/1/status", headers=token)
-        assert resp.status_code == 200
-        resp_2 = client.put("/api/tasks/1/status", headers=token_2)
-        assert resp_2.status_code == 200
-        assert resp.status_code != resp_2
+        
+        resp1 = client.put("/api/tasks/1/status", headers=token)
+        assert resp1.status_code == 200
+        assert resp1.json()["is_completed"] is True
+        
+        resp2 = client.put("/api/tasks/1/status", headers=token_2)
+        assert resp2.status_code == 200
+        assert resp2.json()["is_completed"] is True
+        
+        task1 = client.get("/api/tasks/1", headers=token).json()
+        task2 = client.get("/api/tasks/1", headers=token_2).json()
+        assert task1["name"] != task2["name"]
 
 
 class TestCreateTask:

@@ -18,10 +18,7 @@ def complete_uncomplete_recur_task(
     db: Session = Depends(get_db),
     user_id: int = Depends(get_current_user),
 ):
-    resp = db_exc_check(
-        rt.complete_uncomplete_recur_task,
-        {"db": db, "user_task_id": user_task_id, "user_id": user_id},
-    )
+    resp = rt.complete_uncomplete_recur_task(user_task_id, user_id, db)
 
     if resp is None:
         raise HTTPException(404, detail="the recurring task doesn't exist")
@@ -35,7 +32,7 @@ def create_recur_task(
     user_id: int = Depends(get_current_user),
 ):
     body = schemas.RecurTaskWithOwner(**body.model_dump(), owner=user_id)
-    resp = db_exc_check(rt.create_recur_task, {"body": body, "db": db})
+    resp = rt.create_recur_task(body, db)
     return resp
 
 
@@ -63,15 +60,13 @@ def get_recur_task(
 
 @router.put("/{user_task_id}", status_code=200, response_model=schemas.RecurTaskOut)
 def update_recur_task(
-    body: schemas.RecurTask,
+    body: schemas.RecurTaskUpdate,
     user_task_id: int,
     db: Session = Depends(get_db),
     user_id: int = Depends(get_current_user),
 ):
-    body = schemas.RecurTaskWithOwner(**body.model_dump(), owner=user_id)
-    resp = db_exc_check(
-        rt.update_recur_task, {"body": body, "db": db, "user_task_id": user_task_id}
-    )
+    body = schemas.RecurTaskWithOwnerUpdate(**body.model_dump(), owner=user_id)
+    resp = rt.update_recur_task(user_task_id, body, db)
 
     if resp is None:
         raise HTTPException(404, detail="the recurring task doesn't exist")
@@ -85,12 +80,9 @@ def delete_recur_task(
     db: Session = Depends(get_db),
     user_id: int = Depends(get_current_user),
 ):
-    resp = db_exc_check(
-        rt.delete_recur_task,
-        {"user_id": user_id, "user_task_id": user_task_id, "db": db},
-    )
+    resp = rt.delete_recur_task(user_id, user_task_id, db)
 
-    if resp is None:
+    if not resp:
         raise HTTPException(404, detail="the recurring task doesn't exist")
 
     return Response(status_code=204)

@@ -61,33 +61,43 @@ def create_refresh_token(subject_id: int, expires_delta: int = None) -> str:
 
 def verify_token(token: str = Depends(oauth2_scheme)):
     try:
-        payload = jwt.decode(token, key=SECRET_KEY, algorithms=ALGORITHM)
+        payload = jwt.decode(token, key=SECRET_KEY, algorithms=[ALGORITHM])
         token_data = Payload(**payload)
-        user_id = int(token_data.sub)
 
-        if datetime.fromtimestamp(token_data.exp) < datetime.now():
+        if datetime.fromtimestamp(token_data.exp, timezone.utc) < datetime.now(
+            timezone.utc
+        ):
             raise HTTPException(
-                401, detail="Token expired", headers={"WWW-Authenticate": "Bearer"}
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Token has expired",
+                headers={"WWW-Authenticate": "Bearer"},
             )
 
-    except (JWTError, ValidationError):
-        raise HTTPException(403, detail="Could not validate credentials")
+        return int(token_data.sub)
 
-    return user_id
+    except JWTError as e:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail=f"Invalid token: {str(e)}"
+        )
+    except ValidationError as e:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=f"Token validation failed: {str(e)}",
+        )
 
 
 def get_current_user(
     token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)
 ):
     user_id = verify_token(token)
-    user_exists = db.execute(select(exists().where(models.User.id == user_id))).scalar()
 
-    if user_exists:
-        return user_id
+    # Опционально - если нужно проверять существование пользователя
+    if not db.scalar(select(exists().where(models.User.id == user_id))):
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
+        )
 
-    raise HTTPException(
-        401, detail="Token expired", headers={"WWW-Authenticate": "Bearer"}
-    )
+    return user_id
 
 
 def create_token_pair(subject_id: int) -> TokenResp:
@@ -96,7 +106,7 @@ def create_token_pair(subject_id: int) -> TokenResp:
     return TokenResp(access_token=access_token, refresh_token=refresh_token)
 
 
-def verify_refresh_token(token: str, db: Session):
+def verify_refresh_token(token: str, db: Session = Depends(get_db)):
     try:
         payload = jwt.decode(
             token, key=REFRESH_SECRET_KEY, algorithms=REFRESH_ALGORITHM
@@ -156,7 +166,3 @@ def refresh_access_token(refresh_token: str, db: Session = Depends(get_db)):
     db.commit()
 
     return TokenResp(access_token=new_access_token, refresh_token=new_refresh_token)
-
-
-# def send_code():
-#     pass

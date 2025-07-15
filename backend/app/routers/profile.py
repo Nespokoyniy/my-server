@@ -18,7 +18,7 @@ def delete_profile(
     db.execute(delete(models.RefreshToken).where(models.RefreshToken.owner == user_id))
     db.commit()
 
-    deleted = db_exc_check(users.delete_user, {"user_id": user_id, "db": db})
+    deleted = users.delete_user(user_id, db)
 
     if not deleted:
         raise HTTPException(status_code=404, detail="User not found")
@@ -28,14 +28,13 @@ def delete_profile(
 
 @router.put("/", status_code=200, response_model=schemas.UserOut)
 def update_profile(
-    body: schemas.User,
+    body: schemas.UserUpdate,
     db: Session = Depends(get_db),
     user_id: int = Depends(get_current_user),
 ):
-    updated_user = db_exc_check(
-        users.update_user, {"user_id": user_id, "body": body, "db": db}
-    )
-
+    updated_user = users.update_user(user_id, body, db)
+    if not updated_user:
+        raise HTTPException(404, detail="User not found")
     return updated_user
 
 

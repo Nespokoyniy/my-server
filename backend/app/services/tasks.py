@@ -1,3 +1,4 @@
+from ..utils.exc import db_exc_check
 from ..database import models
 from sqlalchemy import delete, select, update
 from typing import Optional
@@ -15,29 +16,40 @@ TASK_FIELDS = [
 ]
 
 
+@db_exc_check
 def complete_uncomplete_task(
     user_task_id: int, user_id: int, db: Session
 ) -> Optional[schemas.TaskOut]:
-    task = db.execute(
-        select(models.Task).where(
-            models.Task.user_task_id == user_task_id, models.Task.owner == user_id
+    task = (
+        db.execute(
+            select(models.Task).where(
+                models.Task.user_task_id == user_task_id, models.Task.owner == user_id
+            )
         )
-    ).scalar_one_or_none()
+        .scalar_one_or_none()
+    )
 
     if task is None:
         return None
 
-    resp = db.execute(
-        update(models.Task)
-        .where(models.Task.user_task_id == user_task_id, models.Task.owner == user_id)
-        .returning(*TASK_FIELDS)
-        .values(is_completed=not task.is_completed)
-    ).mappings().first()
+    resp = (
+        db.execute(
+            update(models.Task)
+            .where(
+                models.Task.user_task_id == user_task_id, models.Task.owner == user_id
+            )
+            .returning(*TASK_FIELDS)
+            .values(is_completed=not task.is_completed)
+        )
+        .mappings()
+        .first()
+    )
 
     db.commit()
     return schemas.TaskOut.model_validate(resp)
 
 
+@db_exc_check
 def create_task(body: schemas.TaskWithOwner, db: Session) -> schemas.TaskOut:
     body = body.model_dump()
     body["created_at"] = datetime.datetime.now(datetime.timezone.utc)
@@ -60,6 +72,7 @@ def create_task(body: schemas.TaskWithOwner, db: Session) -> schemas.TaskOut:
     return schemas.TaskOut.model_validate(task)
 
 
+@db_exc_check
 def get_tasks(user_id: int, db: Session) -> list[schemas.TaskOut]:
     tasks = (
         db.execute(select(models.Task).where(models.Task.owner == user_id))
@@ -69,6 +82,7 @@ def get_tasks(user_id: int, db: Session) -> list[schemas.TaskOut]:
     return [schemas.TaskOut.model_validate(task) for task in tasks]
 
 
+@db_exc_check
 def get_task(user_id: int, user_task_id: int, db: Session) -> Optional[schemas.TaskOut]:
     task = (
         db.execute(
@@ -86,18 +100,35 @@ def get_task(user_id: int, user_task_id: int, db: Session) -> Optional[schemas.T
     return None
 
 
+@db_exc_check
 def update_task(
-    user_task_id: int, body: schemas.TaskWithOwner, db: Session
+    user_task_id: int, body: schemas.TaskWithOwnerUpdate, db: Session
 ) -> Optional[schemas.TaskOut]:
     task = db.execute(
-        update(models.Task)
-        .where(
+        select(models.Task).where(
             models.Task.user_task_id == user_task_id,
             models.Task.owner == body.owner,
         )
-        .returning(*TASK_FIELDS)
-        .values(**body.model_dump())
-    ).mappings().first()
+    ).scalar_one_or_none()
+
+    body = body.model_dump()
+    for key, value in body.items():
+        if value is None:
+            del body[key]
+
+    task = (
+        db.execute(
+            update(models.Task)
+            .where(
+                models.Task.user_task_id == user_task_id,
+                models.Task.owner == body.owner,
+            )
+            .returning(*TASK_FIELDS)
+            .values(**body.model_dump())
+        )
+        .mappings()
+        .first()
+    )
 
     if task:
         db.commit()
@@ -106,21 +137,13 @@ def update_task(
     return None
 
 
-def delete_task(user_id: int, user_task_id: int, db: Session) -> int:
-    task_id = (
-        db.execute(
-            delete(models.Task)
-            .where(
-                models.Task.user_task_id == user_task_id, models.Task.owner == user_id
-            )
-            .returning(models.Task.user_task_id)
+@db_exc_check
+def delete_task(user_id: int, user_task_id: int, db: Session) -> bool:
+    deleted = db.execute(
+        delete(models.Task).where(
+            models.Task.user_task_id == user_task_id,
+            models.Task.owner == user_id,
         )
-        .scalars()
-        .first()
-    )
-
-    if task_id:
-        db.commit()
-        return task_id
-
-    return None
+    ).rowcount
+    db.commit()
+    return deleted > 0

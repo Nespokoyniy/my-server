@@ -4,7 +4,6 @@ from ..database.database import get_db
 from sqlalchemy.orm import Session
 from ..validation import schemas
 from ..services import tasks
-from ..utils.exc import db_exc_check
 from ..utils.dependencies import get_current_user
 
 
@@ -17,10 +16,7 @@ def complete_uncomplete_task(
     db: Session = Depends(get_db),
     user_id: int = Depends(get_current_user),
 ):
-    resp = db_exc_check(
-        tasks.complete_uncomplete_task,
-        {"db": db, "user_task_id": user_task_id, "user_id": user_id},
-    )
+    resp = tasks.complete_uncomplete_task(user_task_id, user_id, db)
 
     if resp is None:
         raise HTTPException(404, detail="the task doesn't exist")
@@ -35,7 +31,7 @@ def create_task(
     user_id: int = Depends(get_current_user),
 ):
     body = schemas.TaskWithOwner(**body.model_dump(), owner=user_id)
-    resp = db_exc_check(tasks.create_task, {"body": body, "db": db})
+    resp = tasks.create_task(body, db)
     return resp
 
 
@@ -61,15 +57,13 @@ def get_task(
 
 @router.put("/{user_task_id}", status_code=200, response_model=schemas.TaskOut)
 def update_task(
-    body: schemas.Task,
+    body: schemas.TaskUpdate,
     user_task_id: int,
     db: Session = Depends(get_db),
     user_id: int = Depends(get_current_user),
 ):
-    body = schemas.TaskWithOwner(**body.model_dump(), owner=user_id)
-    updated_task = db_exc_check(
-        tasks.update_task, {"user_task_id": user_task_id, "body": body, "db": db}
-    )
+    body = schemas.TaskWithOwnerUpdate(**body.model_dump(), owner=user_id)
+    updated_task = tasks.update_task(user_task_id, body, db)
 
     if updated_task is None:
         raise HTTPException(404, detail="the task doesn't exist")
@@ -83,11 +77,6 @@ def delete_task(
     db: Session = Depends(get_db),
     user_id: int = Depends(get_current_user),
 ):
-    task = db_exc_check(
-        tasks.delete_task, {"user_id": user_id, "user_task_id": user_task_id, "db": db}
-    )
-
-    if task is None:
+    if not tasks.delete_task(user_id, user_task_id, db):
         raise HTTPException(404, detail="the task doesn't exist")
-
     return Response(status_code=204)

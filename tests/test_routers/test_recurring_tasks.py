@@ -48,14 +48,47 @@ class TestCompleteUncompleteRecurTask:
         create_recur_tasks: None,
         client: TestClient,
     ):
-        resp = client.put("/api/recur-tasks/1/status", headers=token)
-        assert resp.status_code == 200
-        resp_2 = client.put("/api/recur-tasks/1/status", headers=token_2)
-        assert resp_2.status_code == 200
-        assert resp.status_code != resp_2
+        resp1 = client.put("/api/recur-tasks/1/status", headers=token)
+        assert resp1.status_code == 200
+        assert resp1.json()["is_completed"] is True
+
+        task1 = client.get("/api/recur-tasks/1", headers=token).json()
+        task2 = client.get("/api/recur-tasks/1", headers=token_2).json()
+        assert task1["is_completed"] != task2["is_completed"]
 
 
 class TestCreateRecurTask:
+    @pytest.mark.parametrize(
+        "days",
+        [
+            ["mon", "tue", "wed", "thu", "fri", "sat", "sun"],  # все дни
+            ["mon"],  # один день
+            ["tue", "thu", "sat"],  # несколько дней
+            [],  # пустой список
+            ["invalid_day"],  # неверный день
+            ["mon", "mon"],  # дубликаты
+        ],
+    )
+    def test_create_recur_task_with_different_days(
+        self, days: list[str], token: dict[str, str], client: TestClient
+    ):
+        resp = client.post(
+            "/api/recur-tasks",
+            json={"name": "task", "days": days},
+            headers=token,
+        )
+        if (
+            any(
+                day not in ["mon", "tue", "wed", "thu", "fri", "sat", "sun"]
+                for day in days
+            )
+            or not days
+        ):
+            assert resp.status_code == 422
+        else:
+            assert resp.status_code == 201
+            assert set(resp.json()["days"]) == set(days)
+
     def test_create_recur_task_returns_201(
         self, token: dict[str, str], create_recur_tasks: None, client: TestClient
     ):
@@ -137,6 +170,36 @@ class TestGetRecurTask:
 
 
 class TestUpdateRecurTask:
+    def test_days_order_after_update(
+        self, create_recur_tasks: None, token: dict[str, str], client: TestClient
+    ):
+
+        days_in_different_order = ["sun", "mon", "tue"]
+        resp = client.put(
+            "/api/recur-tasks/1",
+            json={"days": days_in_different_order},
+            headers=token,
+        )
+        assert resp.status_code == 200
+        assert resp.json()["days"] == days_in_different_order
+        
+    def test_update_recur_task_days(
+        self, create_recur_tasks: None, token: dict[str, str], client: TestClient
+    ):
+        original_task = client.get("/api/recur-tasks/1", headers=token).json()
+
+        new_days = ["mon", "wed", "fri"]
+        resp = client.put(
+            "/api/recur-tasks/1",
+            json={"days": new_days},
+            headers=token,
+        )
+        assert resp.status_code == 200
+        assert set(resp.json()["days"]) == set(new_days)
+
+        assert resp.json()["name"] == original_task["name"]
+        assert resp.json()["priority"] == original_task["priority"]
+
     @pytest.mark.parametrize(
         "body",
         (

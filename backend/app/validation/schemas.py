@@ -2,6 +2,7 @@ from datetime import datetime
 from pydantic import BaseModel, EmailStr, ConfigDict
 from .enum import Weekdays
 from typing import Optional
+from pydantic import field_validator
 
 
 class MainModel(BaseModel):
@@ -23,6 +24,25 @@ class TaskOut(Task):
 class RecurTask(Task):
     days: list[Weekdays]
 
+    @field_validator("days")
+    def check_days_not_empty(cls, v):
+        if not v:
+            raise ValueError("Days list cannot be empty")
+        return v
+
+class TaskUpdate(MainModel):
+    name: Optional[str] = None
+    description: Optional[str] = None
+    priority: int = 0
+
+class RecurTaskUpdate(TaskUpdate):
+    days: Optional[list[Weekdays]] = None
+
+    @field_validator("days")
+    def check_days_not_empty(cls, v):
+        if not v:
+            raise ValueError("Days list cannot be empty")
+        return v
 
 class RecurTaskOut(RecurTask):
     user_task_id: int
@@ -33,8 +53,13 @@ class RecurTaskOut(RecurTask):
 class TaskWithOwner(Task):
     owner: int
 
+class TaskWithOwnerUpdate(TaskUpdate):
+    owner: int
 
 class RecurTaskWithOwner(RecurTask):
+    owner: int
+
+class RecurTaskWithOwnerUpdate(RecurTaskUpdate):
     owner: int
 
 
@@ -43,6 +68,10 @@ class User(MainModel):
     email: Optional[EmailStr] = None
     password: str
 
+class UserUpdate(MainModel):
+    name: Optional[str] = None
+    email: Optional[EmailStr] = None
+    password: Optional[str] = None
 
 class UserOut(MainModel):
     name: str
@@ -53,7 +82,7 @@ class UserOut(MainModel):
 class UserOutByForm(MainModel):
     id: int
     password: str
-    email: EmailStr
+    email: Optional[EmailStr] = None
     name: str
     created_at: datetime
 
