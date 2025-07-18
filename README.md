@@ -10,7 +10,7 @@ Server for my portfolio, which uses a bunch of technologies to provide stable, c
 Веб приложение для управления задачами (что-то вроде программы для заметок) с несколькими веб-страницами и разными видами задач
 
 #### Frontend
-HTML (HTMX так как работа без js), CSS
+HTML (HTMX так как работа преимущественно без js), CSS
 
 #### Backend
 fastapi, postgresql (с помощью sqlalchemy + alembic), jwt, тесты с pytest, server-side-rendering
