@@ -1,6 +1,5 @@
 import pytest
 from fastapi.testclient import TestClient
-from fastapi import status
 from fastapi.testclient import TestClient
 import datetime
 from jose import jwt
@@ -108,10 +107,8 @@ class TestLogout:
             )
         )
         test_db.commit()
-
-        response = client.delete(
-            "/api/logout", cookies={"refresh_token": refresh_token}, headers=token
-        )
+        client.cookies = {"refresh_token": refresh_token}
+        response = client.delete("/api/logout", headers=token)
 
         assert response.status_code == 204
         assert "access_token" not in response.cookies
@@ -128,86 +125,99 @@ class TestLogout:
 
 
 class TestRefreshToken:
-    def test_refresh_token_success_returns_200(self, client: TestClient, token: dict[str, str], test_db: Session):
-        user_id = test_db.scalar(select(models.User.id).where(models.User.name == "example"))
-        
-        
-        refresh_token = jwt.encode(
-            {
-                "sub": str(user_id),
-                "exp": datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(days=1)
-            },
-            ss.REFRESH_SECRET_KEY,
-            algorithm=ss.REFRESH_ALGORITHM
-        )
-        
-        
-        test_db.add(models.RefreshToken(
-            token=refresh_token,
-            owner=user_id,
-            expires_at=datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(days=1)
-        ))
-        test_db.commit()
-        
-        
-        db_token = test_db.scalar(select(models.RefreshToken).where(models.RefreshToken.token == refresh_token))
-        assert db_token is not None, "Refresh token not found in database"
-        
-        
-        with client:
-            client.cookies = {"refresh_token": refresh_token}
-            response = client.post("/api/refresh", headers=token)
-        
-        print("Response:", response.json())
-        assert response.status_code == 200
-
-    def test_refresh_token_missing_returns_400(self, client: TestClient, token):
-        response = client.post("/api/refresh", headers=token)
-        assert response.status_code == 400
-        assert response.json()["detail"] == "Refresh token missing"
-
-    def test_refresh_token_invalid_returns_403(
-        self, client: TestClient, test_db: Session, token
-    ):
-        user_id = test_db.scalar(
-            select(models.User.id).where(models.User.name == "example")
-        )
-        expired_token = jwt.encode(
-            {
-                "sub": str(user_id),
-                "exp": datetime.datetime.now(datetime.timezone.utc)
-                - datetime.timedelta(days=1),
-            },
-            ss.REFRESH_SECRET_KEY,
-            algorithm=ss.REFRESH_ALGORITHM,
-        )
-
-        response = client.post(
-            "/api/refresh", cookies={"refresh_token": expired_token}, headers=token
-        )
-
-        assert response.status_code == 403
-        assert "detail" in response.json()
-
-    def test_refresh_token_not_in_db_returns_403(
+    def test_refresh_token_success_returns_200(
         self, client: TestClient, token: dict[str, str], test_db: Session
     ):
         user_id = test_db.scalar(
             select(models.User.id).where(models.User.name == "example")
         )
+        expires_at = datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(
+            minutes=ss.REFRESH_TOKEN_EXPIRE_MINUTES
+        )
         refresh_token = jwt.encode(
             {
                 "sub": str(user_id),
-                "exp": datetime.datetime.now(datetime.timezone.utc)
-                + datetime.timedelta(days=1),
+                "exp": expires_at.timestamp(),
+                "iat": datetime.datetime.now(datetime.timezone.utc).timestamp(),
             },
             ss.REFRESH_SECRET_KEY,
             algorithm=ss.REFRESH_ALGORITHM,
         )
 
-        response = client.post(
-            "/api/refresh", cookies={"refresh_token": refresh_token}, headers=token
+        test_db.add(
+            models.RefreshToken(
+                token=refresh_token,
+                owner=user_id,
+                expires_at=datetime.datetime.now(datetime.timezone.utc)
+                + datetime.timedelta(days=1),
+            )
         )
+        test_db.commit()
 
-        assert response.status_code == 403
+        db_token = test_db.scalar(
+            select(models.RefreshToken).where(
+                models.RefreshToken.token == refresh_token
+            )
+        )
+        assert db_token is not None
+
+        client.cookies = {"refresh_token": refresh_token}
+        response = client.post("/api/refresh")
+
+        print("Response:", response.json())
+        assert response.status_code == 200
+
+    def test_refresh_token_missing_returns_400(
+        self, client: TestClient, token: dict[str, str]
+    ):
+        response = client.post("/api/refresh")
+        assert response.status_code == 400
+        assert response.json()["detail"] == "Refresh token missing"
+
+    def test_refresh_token_expired_returns_401(
+        self, client: TestClient, test_db: Session, token: dict[str, str]
+    ):
+        user_id = test_db.scalar(
+            select(models.User.id).where(models.User.name == "example")
+        )
+        expires_at = datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(
+            minutes=ss.REFRESH_TOKEN_EXPIRE_MINUTES
+        )
+        expired_token = jwt.encode(
+            {
+                "sub": str(user_id),
+                "exp": expires_at.timestamp(),
+                "iat": datetime.datetime.now(datetime.timezone.utc).timestamp(),
+            },
+            ss.REFRESH_SECRET_KEY,
+            algorithm=ss.REFRESH_ALGORITHM,
+        )
+        client.cookies = {"refresh_token": expired_token}
+        response = client.post("/api/refresh")
+
+        assert response.status_code == 401
+        assert "detail" in response.json()
+
+    def test_refresh_token_not_in_db_returns_401(
+        self, client: TestClient, token: dict[str, str], test_db: Session
+    ):
+        user_id = test_db.scalar(
+            select(models.User.id).where(models.User.name == "example")
+        )
+        expires_at = datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(
+            minutes=ss.REFRESH_TOKEN_EXPIRE_MINUTES
+        )
+        refresh_token = jwt.encode(
+            {
+                "sub": str(user_id),
+                "exp": expires_at.timestamp(),
+                "iat": datetime.datetime.now(datetime.timezone.utc).timestamp(),
+            },
+            ss.REFRESH_SECRET_KEY,
+            algorithm=ss.REFRESH_ALGORITHM,
+        )
+        client.cookies = {"refresh_token": refresh_token}
+        response = client.post("/api/refresh")
+
+        assert response.status_code == 401
         assert "detail" in response.json()

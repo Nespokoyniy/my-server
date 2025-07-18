@@ -44,30 +44,6 @@ def client(test_db):
 
 @pytest.fixture
 def register(test_db: Session):
-    test_db.execute(
-        delete(models.RefreshToken).where(
-            models.RefreshToken.owner.in_(
-                select(models.User.id).where(models.User.name == "example")
-            )
-        )
-    )
-    test_db.execute(
-        delete(models.RecurringTask).where(
-            models.RecurringTask.owner.in_(
-                select(models.User.id).where(models.User.name == "example")
-            )
-        )
-    )
-    test_db.execute(
-        delete(models.Task).where(
-            models.Task.owner.in_(
-                select(models.User.id).where(models.User.name == "example")
-            )
-        )
-    )
-    test_db.execute(delete(models.User).where(models.User.name == "example"))
-    test_db.commit()
-
     try:
         user = models.User(
             name="example",
@@ -105,7 +81,7 @@ def register(test_db: Session):
 
 
 @pytest.fixture
-def token(register, test_db: Session):
+def token(register: None, test_db: Session):
     token: schemas.TokenResp = login(
         OAuth2PasswordRequestForm(username="example", password="example123"), test_db
     )
@@ -114,30 +90,6 @@ def token(register, test_db: Session):
 
 @pytest.fixture
 def register_2(test_db: Session):
-    test_db.execute(
-        delete(models.RefreshToken).where(
-            models.RefreshToken.owner.in_(
-                select(models.User.id).where(models.User.name == "example_2")
-            )
-        )
-    )
-    test_db.execute(
-        delete(models.RecurringTask).where(
-            models.RecurringTask.owner.in_(
-                select(models.User.id).where(models.User.name == "example_2")
-            )
-        )
-    )
-    test_db.execute(
-        delete(models.Task).where(
-            models.Task.owner.in_(
-                select(models.User.id).where(models.User.name == "example_2")
-            )
-        )
-    )
-    test_db.execute(delete(models.User).where(models.User.name == "example_2"))
-    test_db.commit()
-
     try:
         user = models.User(
             name="example_2",
@@ -175,8 +127,8 @@ def register_2(test_db: Session):
 
 
 @pytest.fixture
-def token_2(register_2, test_db: Session):
-    token = login(
+def token_2(register_2: None, test_db: Session):
+    token: schemas.TokenResp = login(
         OAuth2PasswordRequestForm(username="example_2", password="example_2123"),
         test_db,
     )
@@ -184,7 +136,7 @@ def token_2(register_2, test_db: Session):
 
 
 @pytest.fixture
-def create_tasks(token_2, token, test_db):
+def create_tasks(token_2: dict, token: dict, test_db: Session):
     user_id = get_current_user(token["Authorization"].split()[1], test_db)
     user_id_2 = get_current_user(token_2["Authorization"].split()[1], test_db)
     for num in range(1, 4):
@@ -212,7 +164,7 @@ def create_tasks(token_2, token, test_db):
 
 
 @pytest.fixture
-def create_recur_tasks(token_2, token, test_db):
+def create_recur_tasks(token_2: dict, token: dict, test_db: Session):
     weekdays = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"]
     user_id = get_current_user(token["Authorization"].split()[1], test_db)
     user_id_2 = get_current_user(token_2["Authorization"].split()[1], test_db)

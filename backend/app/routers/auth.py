@@ -42,8 +42,7 @@ def logout(
 @router.post("/refresh", status_code=200, response_model=schemas.TokenResp)
 def refresh_token_pair(
     refresh_token: str = Cookie(None),
-    db: Session = Depends(get_db),
-    user_id: int = Depends(get_current_user),
+    db: Session = Depends(get_db)
 ):
     if not refresh_token:
         raise HTTPException(400, detail="Refresh token missing")

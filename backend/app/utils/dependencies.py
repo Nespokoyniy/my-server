@@ -4,7 +4,7 @@ from ..config import settings as ss
 from jose import JWTError, jwt
 from datetime import datetime, timedelta, timezone
 from ..validation.schemas import Payload, TokenResp
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException
 from ..database.database import get_db
 from sqlalchemy.orm import Session
 from sqlalchemy import exists, select, delete
@@ -68,7 +68,7 @@ def verify_token(token: str = Depends(oauth2_scheme)):
             timezone.utc
         ):
             raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
+                status_code=401,
                 detail="Token has expired",
                 headers={"WWW-Authenticate": "Bearer"},
             )
@@ -77,11 +77,11 @@ def verify_token(token: str = Depends(oauth2_scheme)):
 
     except JWTError as e:
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN, detail=f"Invalid token: {str(e)}"
+            status_code=403, detail=f"Invalid token: {str(e)}"
         )
     except ValidationError as e:
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
+            status_code=403,
             detail=f"Token validation failed: {str(e)}",
         )
 
@@ -91,10 +91,9 @@ def get_current_user(
 ):
     user_id = verify_token(token)
 
-    # Опционально - если нужно проверять существование пользователя
     if not db.scalar(select(exists().where(models.User.id == user_id))):
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
+            status_code=404, detail="User not found"
         )
 
     return user_id
@@ -116,7 +115,7 @@ def verify_refresh_token(token: str, db: Session = Depends(get_db)):
 
         if datetime.fromtimestamp(token_data.exp) < datetime.now():
             raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
+                status_code=401,
                 detail="Refresh token expired",
                 headers={"WWW-Authenticate": "Bearer"},
             )
@@ -127,7 +126,7 @@ def verify_refresh_token(token: str, db: Session = Depends(get_db)):
 
         if not token_exists:
             raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
+                status_code=401,
                 detail="Invalid refresh token",
             )
 
@@ -135,7 +134,7 @@ def verify_refresh_token(token: str, db: Session = Depends(get_db)):
 
     except (JWTError, ValidationError):
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
+            status_code=403,
             detail="Could not validate credentials",
         )
 
@@ -153,7 +152,7 @@ def refresh_access_token(refresh_token: str, db: Session = Depends(get_db)):
     db.add(
         models.RefreshToken(
             token=new_refresh_token,
-            user_id=user_id,
+            owner=user_id,
             expires_at=datetime.fromtimestamp(
                 jwt.decode(
                     new_refresh_token,
