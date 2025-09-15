@@ -23,7 +23,7 @@ def restart():
 
 
 def help():
-    print("Usage: python script.py [command]")
+    print("Usage: python run.py [command]")
     print("Commands:")
     print("  up         - Start containers")
     print("  build-up   - Build and start containers")
