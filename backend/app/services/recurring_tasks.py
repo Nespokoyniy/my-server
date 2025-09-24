@@ -39,7 +39,7 @@ def complete_uncomplete_recur_task(
                 models.RecurringTask.owner == user_id,
             )
             .returning(*TASK_FIELDS)
-            .values(is_completed=not task.is_completed)
+            .values(is_completed=not bool(task.is_completed))
         )
         .mappings()
         .first()
@@ -51,9 +51,9 @@ def complete_uncomplete_recur_task(
 
 @db_exc_check
 def create_recur_task(
-    body: schemas.RecurTaskWithOwner, db: Session
+    body_schema: schemas.RecurTaskWithOwner, db: Session
 ) -> schemas.RecurTaskOut:
-    body = body.model_dump()
+    body = body_schema.model_dump()
     body["created_at"] = datetime.datetime.now(datetime.timezone.utc)
     last_task = db.execute(
         select(models.RecurringTask.user_task_id)
@@ -107,19 +107,19 @@ def get_recur_task(
 
 @db_exc_check
 def update_recur_task(
-    user_task_id: int, body: schemas.RecurTaskWithOwnerUpdate, db: Session
+    user_task_id: int, body_schema: schemas.RecurTaskWithOwnerUpdate, db: Session
 ) -> Optional[schemas.RecurTaskOut]:
     task = db.execute(
         select(models.RecurringTask).where(
             models.RecurringTask.user_task_id == user_task_id,
-            models.RecurringTask.owner == body.owner,
+            models.RecurringTask.owner == body_schema.owner,
         )
     ).scalar_one_or_none()
 
     if not task:
         return None
 
-    body = body.model_dump()
+    body = body_schema.model_dump()
     body = {key: value for key, value in body.items() if value is not None}
         
     

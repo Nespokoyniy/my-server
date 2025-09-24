@@ -7,7 +7,6 @@ from ..validation import schemas
 from ..utils.hash import hash_pwd, verify_pwd
 from ..utils.exc import db_exc_check
 from ..utils.dependencies import create_token_pair
-from ..database.database import get_db
 from . import users
 import datetime
 from jose import jwt

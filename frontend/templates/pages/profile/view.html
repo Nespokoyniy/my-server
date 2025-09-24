@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+
+{% block title %}Профиль{% endblock %}
+
+{% block content %}
+<div class="profile-container">
+    <h1 class="profile-title">Мой профиль</h1>
+    
+    <div id="profile-data" 
+         hx-get="api/profile/partial" 
+         hx-trigger="load"
+         hx-swap="innerHTML">
+        <div class="loading">Загрузка данных профиля...</div>
+    </div>
+
+    <!-- Кнопки действий -->
+    <div class="profile-actions">
+        <button class="btn-primary" 
+                hx-get="/profile/edit-form"
+                hx-target="#profile-data"
+                hx-swap="innerHTML">
+            Редактировать профиль
+        </button>
+        
+        <button class="btn-danger" 
+                hx-delete="/api/profile"
+                hx-confirm="Вы уверены, что хотите удалить профиль? Это действие нельзя отменить!"
+                hx-target="body"
+                _="on htmx:afterRequest
+                   if detail.successful
+                     window.location.href = '/login'
+                   end">
+            Удалить профиль
+        </button>
+    </div>
+</div>
+{% endblock %}

@@ -7,6 +7,7 @@ from ..validation.schemas import Payload, TokenResp
 from fastapi import Depends, HTTPException
 from ..database.database import get_db
 from sqlalchemy.orm import Session
+from typing import Optional
 from sqlalchemy import exists, select, delete
 from ..database import models
 
@@ -19,13 +20,8 @@ REFRESH_SECRET_KEY = ss.REFRESH_SECRET_KEY
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login", scheme_name="JWT")
 
 
-def create_token(subject_id: int, expires_delta: int = None) -> str:
-    if expires_delta is not None:
-        expires_delta = datetime.now(timezone.utc) + expires_delta
-    else:
-        expires_delta = datetime.now(timezone.utc) + timedelta(
-            minutes=TOKEN_EXPIRE_MINUTES
-        )
+def create_token(subject_id: Optional[int]) -> str:
+    expires_delta = datetime.now(timezone.utc) + timedelta(minutes=TOKEN_EXPIRE_MINUTES)
 
     if not subject_id:
         raise ValueError("Subject must be non-empty string")
@@ -39,13 +35,10 @@ def create_token(subject_id: int, expires_delta: int = None) -> str:
     return encoded_jwt
 
 
-def create_refresh_token(subject_id: int, expires_delta: int = None) -> str:
-    if expires_delta is not None:
-        expires_delta = datetime.now(timezone.utc) + expires_delta
-    else:
-        expires_delta = datetime.now(timezone.utc) + timedelta(
-            minutes=REFRESH_TOKEN_EXPIRE_MINUTES
-        )
+def create_refresh_token(subject_id: int) -> str:
+    expires_delta = datetime.now(timezone.utc) + timedelta(
+        minutes=REFRESH_TOKEN_EXPIRE_MINUTES
+    )
 
     if not subject_id:
         raise ValueError("Subject must be non-empty string")
@@ -76,9 +69,7 @@ def verify_token(token: str = Depends(oauth2_scheme)):
         return int(token_data.sub)
 
     except JWTError as e:
-        raise HTTPException(
-            status_code=403, detail=f"Invalid token: {str(e)}"
-        )
+        raise HTTPException(status_code=403, detail=f"Invalid token: {str(e)}")
     except ValidationError as e:
         raise HTTPException(
             status_code=403,
@@ -92,9 +83,7 @@ def get_current_user(
     user_id = verify_token(token)
 
     if not db.scalar(select(exists().where(models.User.id == user_id))):
-        raise HTTPException(
-            status_code=404, detail="User not found"
-        )
+        raise HTTPException(status_code=404, detail="User not found")
 
     return user_id
 

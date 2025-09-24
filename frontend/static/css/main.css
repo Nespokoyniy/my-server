@@ -1,0 +1,321 @@
+body {
+    background-color: #2b2b2b; /* Тёмно-серый фон */
+    color: #e0e0e0; /* Светлый цвет текста */
+    font-family: 'JetBrains Mono', monospace;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column; /* Элементы будут располагаться вертикально */
+    min-height: 100vh; /* Минимальная высота - 100% высоты окна просмотра */
+}
+
+/* Стили для шапки страницы */
+.header {
+    padding-top: 20px;
+    padding-bottom: 20px;
+    position: relative; /* Устанавливаем относительное позиционирование для дочерних элементов */
+}
+
+/* Стили для контейнера с основными кнопками */
+.main-buttons {
+    display: flex;
+    justify-content: center; /* Центрируем кнопки внутри контейнера */
+    gap: 15px;
+}
+
+.button {
+    background-color: #e74c3c;
+    color: white;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 16px;
+    padding: 8px 30px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.button:hover {
+    background-color: #c0392b;
+}
+
+/* Стили для кнопки "выйти" */
+.logout-button {
+    background-color: #2b2b2b; /* Фон как у основного фона страницы */
+    color: #e74c3c; /* Красный цвет текста */
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    padding: 6px 15px;
+    border: 1px solid #e74c3c; /* Красноватая обводка */
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    
+    position: absolute; /* Абсолютное позиционирование */
+    top: 20px; /* Отступ сверху */
+    right: 40px; /* Отступ справа */
+}
+
+.logout-button:hover {
+    background-color: #383838; /* Цвет фона при наведении */
+}
+
+/* Стили для разделительных линий. Теперь они на всю ширину */
+.divider {
+    border: none;
+    border-top: 1px solid #4a4a4a; /* Тонкая серая линия */
+    width: 100%;
+    margin: 15px 0;
+}
+
+.text-content {
+    font-size: 16px;
+    line-height: 1.6;
+}
+
+/* Стили для подвала со ссылкой на GitHub */
+.footer {
+    padding-bottom: 20px;
+    text-align: center;
+}
+
+.github-link {
+    color: #3498db;
+    text-decoration: none;
+    font-weight: bold;
+    transition: color 0.3s ease;
+}
+
+.github-link:hover {
+    color: #2980b9;
+    text-decoration: underline;
+}
+
+.main-content {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    flex-grow: 1;
+    flex-direction: column; /* Располагает дочерние элементы вертикально */
+}
+
+.welcome-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 20px; /* Расстояние между элементами внутри контейнера */
+}
+
+.welcome-text {
+    font-size: 3rem; /* Делает текст "Добро пожаловать!" крупнее */
+    margin: 0; /* Убирает стандартные отступы у h1 */
+    font-weight: bolder;
+}
+
+.time-text {
+    font-size: 2rem; /* Делает время крупнее */
+    margin: 0;
+    font-weight: bolder;
+}
+
+/* Стили для страницы профиля */
+.profile-container {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 2rem;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.profile-title {
+    text-align: center;
+    margin-bottom: 2rem;
+    color: #e0e0e0;
+    font-size: 2.5rem;
+    font-weight: bolder;
+}
+
+.profile-data {
+    background: #383838;
+    padding: 1.5rem;
+    border-radius: 8px;
+    margin-bottom: 2rem;
+    border: 1px solid #4a4a4a;
+}
+
+.profile-field {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 0;
+    border-bottom: 1px solid #4a4a4a;
+}
+
+.profile-field:last-child {
+    border-bottom: none;
+}
+
+.field-label {
+    font-weight: 600;
+    color: #b0b0b0;
+}
+
+.field-value {
+    color: #e0e0e0;
+    font-weight: 500;
+}
+
+.profile-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+/* Кнопки профиля */
+.btn-primary {
+    background-color: #3498db;
+    color: white;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 16px;
+    padding: 10px 25px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.btn-primary:hover {
+    background-color: #2980b9;
+}
+
+.btn-danger {
+    background-color: #2b2b2b;
+    color: #e74c3c;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 16px;
+    padding: 10px 25px;
+    border: 1px solid #e74c3c;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.btn-danger:hover {
+    background-color: #383838;
+}
+
+.btn-secondary {
+    background-color: #2b2b2b;
+    color: #95a5a6;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 16px;
+    padding: 10px 25px;
+    border: 1px solid #95a5a6;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.btn-secondary:hover {
+    background-color: #383838;
+}
+
+/* Формы редактирования */
+.profile-edit-form {
+    background: #383838;
+    padding: 1.5rem;
+    border-radius: 8px;
+    border: 1px solid #4a4a4a;
+}
+
+.profile-edit-form h3 {
+    color: #e0e0e0;
+    margin-bottom: 1.5rem;
+    text-align: center;
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: #b0b0b0;
+    font-weight: 600;
+}
+
+.form-input {
+    width: 100%;
+    padding: 0.75rem;
+    background-color: #2b2b2b;
+    border: 1px solid #4a4a4a;
+    border-radius: 6px;
+    color: #e0e0e0;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+}
+
+.form-input:focus {
+    outline: none;
+    border-color: #3498db;
+}
+
+.form-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    margin-top: 2rem;
+}
+
+/* Состояния загрузки и пустые состояния */
+.loading {
+    text-align: center;
+    padding: 3rem;
+    color: #95a5a6;
+    font-style: italic;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 2rem;
+    color: #95a5a6;
+    font-style: italic;
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+    .profile-container {
+        padding: 1rem;
+    }
+    
+    .profile-field {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+    
+    .profile-actions {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .form-actions {
+        flex-direction: column;
+    }
+}
+
+/* Анимации */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.profile-data, .profile-edit-form {
+    animation: fadeIn 0.3s ease-in-out;
+}

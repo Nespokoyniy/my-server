@@ -39,7 +39,7 @@ def complete_uncomplete_task(
                 models.Task.user_task_id == user_task_id, models.Task.owner == user_id
             )
             .returning(*TASK_FIELDS)
-            .values(is_completed=not task.is_completed)
+            .values(is_completed=not bool(task.is_completed))
         )
         .mappings()
         .first()
@@ -50,8 +50,8 @@ def complete_uncomplete_task(
 
 
 @db_exc_check
-def create_task(body: schemas.TaskWithOwner, db: Session) -> schemas.TaskOut:
-    body = body.model_dump()
+def create_task(body_schema: schemas.TaskWithOwner, db: Session) -> schemas.TaskOut:
+    body = body_schema.model_dump()
     body["created_at"] = datetime.datetime.now(datetime.timezone.utc)
 
     # Get the last task for this user
@@ -102,16 +102,16 @@ def get_task(user_id: int, user_task_id: int, db: Session) -> Optional[schemas.T
 
 @db_exc_check
 def update_task(
-    user_task_id: int, body: schemas.TaskWithOwnerUpdate, db: Session
+    user_task_id: int, body_schema: schemas.TaskWithOwnerUpdate, db: Session
 ) -> Optional[schemas.TaskOut]:
     task = db.execute(
         select(models.Task).where(
             models.Task.user_task_id == user_task_id,
-            models.Task.owner == body.owner,
+            models.Task.owner == body_schema.owner,
         )
     ).scalar_one_or_none()
 
-    body = body.model_dump()
+    body = body_schema.model_dump()
     body = {key: value for key, value in body.items() if value is not None}
 
     task = (

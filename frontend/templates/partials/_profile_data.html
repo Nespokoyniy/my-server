@@ -1,0 +1,42 @@
+<div class="profile-data">
+    <div class="profile-field">
+        <label class="field-label">Имя пользователя:</label>
+        <span class="field-value">{{ user.name }}</span>
+    </div>
+    
+    <div class="profile-field">
+        <label class="field-label">Email:</label>
+        <span class="field-value">
+            {% if user.email %}
+                {{ user.email }}
+            {% else %}
+                <em>Не указан</em>
+            {% endif %}
+        </span>
+    </div>
+    
+    <div class="profile-field">
+        <label class="field-label">Дата регистрации:</label>
+        <span class="field-value">{{ user.created_at.strftime('%d.%m.%Y в %H:%M') }}</span>
+    </div>
+    
+    <div class="profile-field">
+        <label class="field-label">Аккаунт создан:</label>
+        <span class="field-value" id="account-age">
+            {{ ((now.replace(tzinfo=None) - user.created_at.replace(tzinfo=None)).days) }} дней назад
+        </span>
+    </div>
+</div>
+
+<script>
+    // Обновляем возраст аккаунта в реальном времени
+    function updateAccountAge() {
+        const created = new Date('{{ user.created_at.isoformat() }}');
+        const now = new Date();
+        const diffTime = Math.abs(now - created);
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        document.getElementById('account-age').textContent = diffDays + ' дней назад';
+    }
+    
+    setInterval(updateAccountAge, 60000); // Обновлять каждую минуту
+</script>

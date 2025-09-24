@@ -8,6 +8,7 @@ from ..database import models
 from sqlalchemy import delete, select, update
 from ..validation import schemas
 import datetime
+from typing import Any
 from fastapi import HTTPException
 
 USER_FIELDS = [
@@ -18,10 +19,10 @@ USER_FIELDS = [
 ]
 
 USER_FIELDS_AND_PWD = USER_FIELDS.copy() + [models.User.password]
-
+ 
 @db_exc_check
-def create_user(body: schemas.User, db: Session) -> schemas.UserOut:
-    body = body.model_dump()
+def create_user(body_schema: schemas.User, db: Session) -> schemas.UserOut:
+    body: dict[str, Any] = body_schema.model_dump()
     user = (
         db.execute(select(*USER_FIELDS).where(models.User.name == body["name"]))
         .mappings()
@@ -74,9 +75,9 @@ def get_user_by_form(
     return user
 
 @db_exc_check
-def update_user(user_id: int, body: schemas.UserUpdate, db: Session) -> Optional[schemas.UserOut]:
+def update_user(user_id: int, body_schema: schemas.UserUpdate, db: Session) -> Optional[schemas.UserOut]:
     
-    body = body.model_dump()
+    body: dict[str, Any] = body_schema.model_dump()
     body = {key: value for key, value in body.items() if value is not None}
     
     user = (
