@@ -319,3 +319,75 @@ body {
 .profile-data, .profile-edit-form {
     animation: fadeIn 0.3s ease-in-out;
 }
+
+/* Стили для формы авторизации/регистрации */
+.auth-form {
+    max-width: 400px;
+    margin: 2rem auto;
+    padding: 2rem;
+    background: #383838;
+    border-radius: 8px;
+    border: 1px solid #4a4a4a;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+.form-title {
+    text-align: center;
+    color: #e0e0e0;
+    margin-bottom: 2rem;
+    font-size: 2rem;
+    font-weight: bold;
+}
+
+.auth-link-container {
+    text-align: center;
+    margin-top: 1rem;
+}
+
+.auth-link {
+    color: #3498db;
+    text-decoration: none;
+    font-weight: bold;
+    transition: color 0.3s ease;
+}
+
+.auth-link:hover {
+    color: #2980b9;
+    text-decoration: underline;
+}
+
+.success-message-container {
+    max-width: 400px;
+    margin: 2rem auto;
+    padding: 2rem;
+    background: #383838;
+    border-radius: 8px;
+    border: 1px solid #4a4a4a;
+    text-align: center;
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+/* Стили для сообщений об ошибках */
+.error-message {
+    text-align: center;
+    margin-top: 1rem;
+    color: #e74c3c;
+    background-color: #383838;
+    padding: 10px;
+    border-radius: 6px;
+    border: 1px solid #e74c3c;
+}
+
+/* Стили для контейнера с сообщением об аутентификации */
+.auth-message-container {
+    max-width: 400px;
+    margin: 2rem auto;
+    padding: 2rem;
+    background: #383838;
+    border-radius: 8px;
+    border: 1px solid #4a4a4a;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    text-align: center;
+    animation: fadeIn 0.3s ease-in-out;
+}

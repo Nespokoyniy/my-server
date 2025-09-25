@@ -17,10 +17,10 @@ templates = Jinja2Templates(directory="frontend/templates")
 def profile_partial(
     request: Request,
     db: Session = Depends(get_db), 
-    # user_id: int = Depends(get_current_user)
+    user_id: int = Depends(get_current_user)
 ):
-    # user = users.get_user(user_id, db)
-    user = schemas.UserOut(name="Roma", email="email@gmail.com", created_at=datetime.now(timezone.utc))
+    user = users.get_user(user_id, db)
+    # user = schemas.UserOut(name="Roma", email="email@gmail.com", created_at=datetime.now(timezone.utc))
     return templates.TemplateResponse("partials/_profile_data.html", {
         "request": request,
         "user": user,

@@ -7,7 +7,7 @@
     <h1 class="profile-title">Мой профиль</h1>
     
     <div id="profile-data" 
-         hx-get="api/profile/partial" 
+         hx-get="/api/profile/partial" 
          hx-trigger="load"
          hx-swap="innerHTML">
         <div class="loading">Загрузка данных профиля...</div>
@@ -16,7 +16,7 @@
     <!-- Кнопки действий -->
     <div class="profile-actions">
         <button class="btn-primary" 
-                hx-get="/profile/edit-form"
+                hx-get="/api/profile/edit-form"
                 hx-target="#profile-data"
                 hx-swap="innerHTML">
             Редактировать профиль

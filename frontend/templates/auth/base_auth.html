@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Проект{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', path='favicon.ico') }}">
+    <link rel="stylesheet" href="/static/css/main.css">
+    <script src="/static/js/htmx.min.js"></script>
+    <script src="/static/js/hyperscript.min.js"></script>
+</head>
+<body>
+    <main class="main-content" id="main-content-container">
+        {% block content %}{% endblock %}
+    </main>
+    <footer class="footer">
+        <hr class="divider">
+        <a href="https://github.com/Nespokoyniy/my-server" class="github-link" target="_blank">My GitHub</a>
+    </footer>
+</body>
+</html>
