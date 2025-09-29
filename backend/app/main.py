@@ -9,7 +9,7 @@ from .routers import profile, recurring_tasks, tasks, auth, frontend
 
 app = FastAPI(docs_url=None , redoc_url=None)
 
-app.mount("/static", StaticFiles(directory="frontend/static"), name="static") #временно для разработки
+app.mount("/static", StaticFiles(directory="frontend/static"), name="static")
 templates = Jinja2Templates(directory="frontend/templates")
 
 @app.get("/")
@@ -25,13 +25,14 @@ async def http_exception_handler(request: Request, exc: HTTPException):
     """
     Глобальный обработчик исключений для перехвата 401.
     """
+    print("eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee")
     if exc.status_code == 401 and request.headers.get("HX-Request"):
-        # Если это HTMX-запрос и код ошибки 401, возвращаем частичный шаблон.
         return templates.TemplateResponse("errors/401.html", {"request": request}, status_code=401)
     
-    # Для всех остальных случаев используем стандартный обработчик.
+    if exc.status_code == 404 and request.headers.get("HX-Request"):
+        return templates.TemplateResponse("errors/404.html", {"request": request}, status_code=404)
+    
     return HTMLResponse(content=f"Error: {exc.status_code} - {exc.detail}", status_code=exc.status_code)
-
 
 app.include_router(profile.router)
 app.include_router(auth.router)
